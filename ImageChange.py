@@ -7,11 +7,21 @@ import math
 # Function names are lemmatized versions of the words
 # Each function takes optional args, returns new image
 # Function can be passed dictionary of options and tries to find them
-def getMethod(methodName, image):
-    return eval(methodName)(image)
+def getMethod(methodName, dirObj, parameters, image):
+    #Will always pass, image and tuple -> [parameters, dirObj]
+    return eval(methodName)(image, parameters, dirObj)
 
-# Needs an image, can have new size, start_position,
-def crop(image, width=-1, height=-1, start_pos="center"):
+# Needs an image, can have new size, startSideition,
+def crop(image, params, dirobj):
+    #Unpack and look for -> width, height, SECTION, SIDES
+    width = None
+    height = None
+    if 'NUMBERS' in params:
+        if len(params['NUMBERS']) == 2:
+            width = params['NUMBERS'][0]
+            height = params['NUMBERS'][1]
+    startSide = params['SIDES'] if 'SIDES' in params else "center"
+    startSection = params['SECTION'] if 'SECTION' in params else None
 
     if width < 0 or height < 0:
         width = int(image.size[0] / 2)
@@ -19,10 +29,11 @@ def crop(image, width=-1, height=-1, start_pos="center"):
     # positions can be: center, topleft, topright, bottomleft, bottomright
     # Seems that 0,0 is topleft
     # im.crop((left, top, right, bottom))
-    top, left = 0, 0
+    top = 0
+    left = 0
     bottom = height
     right = width
-    if start_pos == "center":
+    if startSide == "center":
         middle = image.size[0] - width
         left = middle - int(width / 2)
         right = middle + int(width / 2)
@@ -30,10 +41,10 @@ def crop(image, width=-1, height=-1, start_pos="center"):
         bottom = middle + int(height / 2)
         top = middle - int(height / 2)
     else:
-        if start_pos.startswith("bottom"):
+        if startSection.lower() == "bottom":
             bottom = image.size[1]
             top = image.size[1] - height
-        if start_pos.endswith("right"):
+        if startSide.lower() == "right":
             right = image.size[0]
             left = image.size[0] - width
 
@@ -41,18 +52,21 @@ def crop(image, width=-1, height=-1, start_pos="center"):
 
 
 # Needs an image, can have a blur percentage
-def blur(image, pct=None):
-
+def blur(image, params, dirobj):
+    pct = int(params['PERCENT']) if 'PERCENT' in params else None
     if pct is None:
         return image.filter(ImageFilter.BLUR)
     # Formula: min(x,y)/20 * pct^2/100^2 b/c blur uses radius
     blurFormula = min(image.size[0], image.size[1]) / 20 * math.pow(pct, 2) / 10000
     return image.filter(ImageFilter.GaussianBlur(radius=blurFormula))
 
-def grayscale(image):
+def grayscale(image, params, dirobj):
 
     return ImageOps.grayscale(image)
 
-def rotate(image, degrees=180):
-
+def rotate(image, params, dirobj):
+    degrees = 180
+    if 'NUMBERS' in params:
+        if len(params['NUMBERS']) == 1:
+            degrees = params['NUMBERS'][0]
     return image.rotate(degrees, expand=True)

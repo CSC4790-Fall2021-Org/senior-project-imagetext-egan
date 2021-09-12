@@ -9,6 +9,8 @@ Pillow PIL
 import spacy
 from PIL import Image
 import ImageChange
+from numerizer import numerize
+import re
 
 def main():
     #Example: "Crop the image and rotate it and grayscale it"
@@ -22,9 +24,9 @@ def main():
         # Get the root word, should be verb
         rt = cmd.root
         head, do = parseTreeNodes(rt)
-        #params = getParameters(cmd.sents)
+        do = do.text if do is not None else None
         #Build the method then call
-        theImg = ImageChange.getMethod(head.text.lower(), theImg)
+        theImg = ImageChange.getMethod(head.text.lower(), do, getParameters(cmd), theImg)
 
     theImg.show()
 
@@ -60,7 +62,7 @@ def parseTreeNodes(head):
     # Root node should be a verb, and should have a direct object (dobj)
     for node in head.children:
         # Find direct object, should only be one
-        if node.dep_ == "dobj":
+        if node.dep_ == "dobj" or node.dep_ == "appos":
             dirObj = node
 
     return head, dirObj
@@ -77,23 +79,23 @@ def updateEntityList():
     return patterns
 
 #Should be recieving one sentence
+#Returns a dict with [keyword : parameter]
 def getParameters(doc):
     params = {}
-    for sen in doc:
-        nums = []
-        for ent in sen.ents:
-            if ent.label_ == "CARDINAL" or ent.label_ == "QUANTITY":
-                [nums.append(int(s)) for s in re.findall(r'\d+', numerize(ent.text))]
-            else:
-                params[ent.label_] = ent.text
+    nums = []
+    for ent in doc.ents:
+        if ent.label_ == "CARDINAL" or ent.label_ == "QUANTITY":
+            [nums.append(int(s)) for s in re.findall(r'\d+', numerize(ent.text))]
+        #ASSUME THERE IS A NUMBER HERE
+        elif ent.label_ == "PERCENT":
+            params[ent.label_] = re.findall(r'\d+', numerize(ent.text))[0]
+        else:
+            params[ent.label_] = ent.text
 
-        if(len(nums) > 0):
-            params['NUMBERS'] = nums
+    if(len(nums) > 0):
+        params['NUMBERS'] = nums
 
-
-
-
-
+    return params
 
 if __name__ == "__main__":
     main()
