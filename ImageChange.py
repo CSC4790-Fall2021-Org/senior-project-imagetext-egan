@@ -23,7 +23,7 @@ def crop(image, params, dirobj):
     startSide = params['SIDES'] if 'SIDES' in params else "center"
     startSection = params['SECTION'] if 'SECTION' in params else None
 
-    if width < 0 or height < 0:
+    if width is None or height is None:
         width = int(image.size[0] / 2)
         height = int(image.size[1] / 2)
     # positions can be: center, topleft, topright, bottomleft, bottomright
@@ -63,6 +63,26 @@ def blur(image, params, dirobj):
 def grayscale(image, params, dirobj):
 
     return ImageOps.grayscale(image)
+
+def invert(image, params, dirobj):
+
+    return ImageOps.invert(image)
+
+def enhance(image, params, dirobj):
+
+    return image.filter(ImageFilter.EDGE_ENHANCE)
+
+def emboss(image, params, dirobj):
+
+    return image.filter(ImageFilter.EMBOSS)
+
+def smooth(image, params, dirobj):
+
+    return image.filter(ImageFilter.SMOOTH)
+
+def sharpen(image, params, dirobj):
+
+    return image.filter(ImageFilter.SHARPEN)
 
 def rotate(image, params, dirobj):
     degrees = 180

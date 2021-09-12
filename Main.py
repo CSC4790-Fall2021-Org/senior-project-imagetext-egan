@@ -4,6 +4,9 @@ Required Packages:
 spacy
 (en_core_web_lg) -> from spacy
 Pillow PIL
+numerizer
+re (regex)
+ImageChange -> uses os and math
 
 """
 import spacy
@@ -16,19 +19,27 @@ def main():
     #Example: "Crop the image and rotate it and grayscale it"
     userIn = input("Cmd: ");
 
+    if(userIn == "quit"):
+        print("Bye!")
+        return False
+
     cmds = parseCommands(userIn)
     theImg = Image.open("Koala.jpg")
 
     #Each command sep
     for cmd in cmds:
         # Get the root word, should be verb
-        rt = cmd.root
-        head, do = parseTreeNodes(rt)
-        do = do.text if do is not None else None
+        rt, params  =  getParameters(cmd)
+        dirObj = parseTreeNodes(cmd.root)
+        if rt is None:
+            #If command couldn't be found try the sentence root
+            rt = cmd.root.text.lower()
+        #do = do.text if do is not None else None
         #Build the method then call
-        theImg = ImageChange.getMethod(head.text.lower(), do, getParameters(cmd), theImg)
+        theImg = ImageChange.getMethod(rt, dirObj, params, theImg)
 
     theImg.show()
+    return True
 
 
 def parseCommands(userIn):
@@ -54,9 +65,8 @@ def parseCommands(userIn):
 
 
 # Take the head node of the sentence, go through the tree
-# Find prepositions that come from the ROOT, these will be the parameters -> exhaust prep search
 def parseTreeNodes(head):
-    # Build tuple (head, obj [can be implied], list_of_parameters( prep_node )
+    # Get direct object if it exists
     dirObj = None
 
     # Root node should be a verb, and should have a direct object (dobj)
@@ -65,17 +75,20 @@ def parseTreeNodes(head):
         if node.dep_ == "dobj" or node.dep_ == "appos":
             dirObj = node
 
-    return head, dirObj
+    return dirObj.text if dirObj is not None else None
 
 def updateEntityList():
     #Load in what we're looking for
     sections = ['bottom', 'lower', 'top', 'upper']
     sides = ['right', 'left', 'center', 'middle']
+    functs = ['grayscale', 'crop', 'blur', 'rotate', 'invert', 'emboss', 'smooth', 'sharpen']
     patterns = []
     for sect in sections:
         patterns.append({"label": "SECTION", "pattern": [{"LOWER": sect}], "id": "SECT"})
     for side in sides:
         patterns.append({"label": "SIDES", "pattern": [{"LOWER": side}], "id": "SIDE"})
+    for func in functs:
+        patterns.append({"label": "FUNCT", "pattern": [{"LOWER": func}], "id": "FUNCTION"})
     return patterns
 
 #Should be recieving one sentence
@@ -83,19 +96,23 @@ def updateEntityList():
 def getParameters(doc):
     params = {}
     nums = []
+    funcToCall = None
     for ent in doc.ents:
         if ent.label_ == "CARDINAL" or ent.label_ == "QUANTITY":
             [nums.append(int(s)) for s in re.findall(r'\d+', numerize(ent.text))]
         #ASSUME THERE IS A NUMBER HERE
         elif ent.label_ == "PERCENT":
             params[ent.label_] = re.findall(r'\d+', numerize(ent.text))[0]
+        elif ent.label_ == "FUNCT":
+            funcToCall = ent.text.lower()
         else:
             params[ent.label_] = ent.text
 
     if(len(nums) > 0):
         params['NUMBERS'] = nums
 
-    return params
+    return funcToCall, params
 
 if __name__ == "__main__":
-    main()
+    while(main()):
+        print("")
