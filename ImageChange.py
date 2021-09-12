@@ -6,6 +6,7 @@ import math
 # Functions related to the ways an image can change
 # Function names are lemmatized versions of the words
 # Each function takes optional args, returns new image
+# Function can be passed dictionary of options and tries to find them
 def getMethod(methodName, image):
     return eval(methodName)(image)
 
