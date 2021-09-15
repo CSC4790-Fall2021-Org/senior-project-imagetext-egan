@@ -20,12 +20,12 @@ def crop(image, params, deps):
     #Unpack and look for -> width, height, SECTION, SIDES
     width = None
     height = None
-    if 'NUMBERS' in params:
-        if len(params['NUMBERS']) == 2:
-            width = params['NUMBERS'][0]
-            height = params['NUMBERS'][1]
-    startSide = params['SIDES'] if 'SIDES' in params else "center"
-    startSection = params['SECTION'] if 'SECTION' in params else None
+    if len(params.get('NUMBERS',[])) == 2:
+        width = params['NUMBERS'][0]
+        height = params['NUMBERS'][1]
+
+    startSide = params.get('SIDES', "center")
+    startSection = params.get('SECTION', None)
 
     if width is None or height is None:
         width = int(image.size[0] / 2)
@@ -38,9 +38,11 @@ def crop(image, params, deps):
     bottom = height
     right = width
     if startSide == "center":
+        
         middle = image.size[0] - width
         left = middle - int(width / 2)
         right = middle + int(width / 2)
+
         middle = image.size[1] - height
         bottom = middle + int(height / 2)
         top = middle - int(height / 2)

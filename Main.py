@@ -9,21 +9,21 @@ re (regex)
 ImageChange -> uses os and math
 
 """
+print("Loading libraries... ")
 import spacy
 from PIL import Image
 import ImageChange
 from numerizer import numerize
 import re
 
-def main():
+def main(nlp):
     #Example: "Crop the image and rotate it and grayscale it"
     userIn = input("Cmd: ");
-
     if(userIn == "quit"):
         print("Bye!")
         return False
 
-    cmds = parseCommands(userIn)
+    cmds = parseCommands(userIn, nlp)
     theImg = Image.open("Koala.jpg")
 
     #Each command sep
@@ -41,17 +41,9 @@ def main():
     theImg.show()
     return True
 
-
-def parseCommands(userIn):
+def parseCommands(userIn, nlp):
     # Split up each command with "and" so that sentences don't get too long
     commands = userIn.split("and")
-    #Load in spacy pipeline
-    nlp = spacy.load("en_core_web_lg")
-    #Add in new pipe with my stuff
-    entity_ruler = nlp.add_pipe("entity_ruler")
-    entity_ruler.initialize(lambda: [], nlp=nlp, patterns=updateEntityList())
-
-    # Go through each split -> can use multiprocessing/numba here later
     allCmds = list()
     #Process each command and return in a list
     #Split up by the keyword "and"
@@ -119,5 +111,11 @@ def getParameters(doc):
     return funcToCall, params
 
 if __name__ == "__main__":
-    while(main()):
-        print("")
+    #Load in spacy nlp -> takes about 1.5-2 seconds:
+    nlp = spacy.load("en_core_web_lg")
+    #Update entity list for nlp
+    entity_ruler = nlp.add_pipe("entity_ruler")
+    entity_ruler.initialize(lambda: [], nlp=nlp, patterns=updateEntityList())
+    print("Done!")
+    while(main(nlp)):
+        continue
