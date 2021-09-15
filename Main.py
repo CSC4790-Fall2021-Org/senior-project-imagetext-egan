@@ -29,14 +29,14 @@ def main():
     #Each command sep
     for cmd in cmds:
         # Get the root word, should be verb
-        rt, params  =  getParameters(cmd)
-        dirObj = parseTreeNodes(cmd.root)
+        rt, params = getParameters(cmd)
+        deps = parseTreeNodes(cmd.root)
         if rt is None:
-            #If command couldn't be found try the sentence root
-            rt = cmd.root.text.lower()
-        #do = do.text if do is not None else None
+            #If command couldn't be found let the user know
+            print("Cannot recognize command: %s" % cmd.root.text.lower())
+            return True
         #Build the method then call
-        theImg = ImageChange.getMethod(rt, dirObj, params, theImg)
+        theImg = ImageChange.getMethod(rt, deps, params, theImg)
 
     theImg.show()
     return True
@@ -68,20 +68,24 @@ def parseCommands(userIn):
 def parseTreeNodes(head):
     # Get direct object if it exists
     dirObj = None
-
+    dependencies = {}
     # Root node should be a verb, and should have a direct object (dobj)
     for node in head.children:
         # Find direct object, should only be one
         if node.dep_ == "dobj" or node.dep_ == "appos":
-            dirObj = node
+            dependencies["dobj"] = node.text
+        #Look for advmod or npadvmod describing how to do this.
+        if node.dep_ == "advmod" or node.dep_ == "npadvmod":
+            dependencies["modifier"] = node.text
 
-    return dirObj.text if dirObj is not None else None
+
+    return dependencies
 
 def updateEntityList():
     #Load in what we're looking for
-    sections = ['bottom', 'lower', 'top', 'upper']
-    sides = ['right', 'left', 'center', 'middle']
-    functs = ['grayscale', 'crop', 'blur', 'rotate', 'invert', 'emboss', 'smooth', 'sharpen']
+    sections = ('bottom', 'lower', 'top', 'upper')
+    sides = ('right', 'left', 'center', 'middle')
+    functs = ('grayscale', 'crop', 'blur', 'rotate', 'invert', 'emboss', 'smooth', 'sharpen')
     patterns = []
     for sect in sections:
         patterns.append({"label": "SECTION", "pattern": [{"LOWER": sect}], "id": "SECT"})
@@ -99,7 +103,8 @@ def getParameters(doc):
     funcToCall = None
     for ent in doc.ents:
         if ent.label_ == "CARDINAL" or ent.label_ == "QUANTITY":
-            [nums.append(int(s)) for s in re.findall(r'\d+', numerize(ent.text))]
+            for s in re.findall(r'\d+', numerize(ent.text)):
+                nums.append(int(s))
         #ASSUME THERE IS A NUMBER HERE
         elif ent.label_ == "PERCENT":
             params[ent.label_] = re.findall(r'\d+', numerize(ent.text))[0]
