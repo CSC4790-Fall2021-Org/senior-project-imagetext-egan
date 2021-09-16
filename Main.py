@@ -1,12 +1,8 @@
 """
 
-Required Packages:
-spacy
-(en_core_web_lg) -> from spacy
-Pillow PIL
-numerizer
-re (regex)
-ImageChange -> uses os and math
+A program that takes english commands and edits photos
+based off of them. Uses the spacy library for nlp and the
+pillow library for image editing.
 
 """
 print("Loading libraries... ")
@@ -48,7 +44,10 @@ def parseCommands(userIn, nlp):
     #Process each command and return in a list
     #Split up by the keyword "and"
     for cmd in commands:
-        toks = nlp(cmd.strip())
+        cmd = cmd.strip()
+        if not cmd.endswith("."):
+            cmd = cmd + "."
+        toks = nlp(cmd)
         #Split up by sentences
         for atomized in toks.sents:
             allCmds.append(atomized)
@@ -75,14 +74,18 @@ def parseTreeNodes(head):
 
 def updateEntityList():
     #Load in what we're looking for
-    sections = ('bottom', 'lower', 'top', 'upper')
-    sides = ('right', 'left', 'center', 'middle')
-    functs = ('grayscale', 'crop', 'blur', 'rotate', 'invert', 'emboss', 'smooth', 'sharpen')
+    downSections = ('bottom', 'lower')
+    upSections = ('top', 'upper')
+    sides = ('right', 'left')
+    #Find functions
+    functs = ('grayscale', 'crop', 'blur', 'rotate', 'invert', 'emboss', 'smooth', 'sharpen', 'enhance')
     patterns = []
-    for sect in sections:
-        patterns.append({"label": "SECTION", "pattern": [{"LOWER": sect}], "id": "SECT"})
+    for sect in downSections:
+        patterns.append({"label": "DOWN", "pattern": [{"LOWER": sect}], "id": "DOWNSECT"})
+    for sect in upSections:
+        patterns.append({"label": "UP", "pattern": [{"LOWER": sect}], "id": "UPSECT"})
     for side in sides:
-        patterns.append({"label": "SIDES", "pattern": [{"LOWER": side}], "id": "SIDE"})
+        patterns.append({"label": "SIDE", "pattern": [{"LOWER": side}], "id": "SIDES"})
     for func in functs:
         patterns.append({"label": "FUNCT", "pattern": [{"LOWER": func}], "id": "FUNCTION"})
     return patterns

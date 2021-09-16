@@ -17,42 +17,47 @@ def getMethod(methodName, deps, parameters, image):
 
 # Needs an image, can have new size, startSideition,
 def crop(image, params, deps):
-    #Unpack and look for -> width, height, SECTION, SIDES
-    width = None
-    height = None
+    #Start by getting a size for the crop
+    newWidth = None
+    newHeight = None
+    width, height = image.size
     if len(params.get('NUMBERS',[])) == 2:
-        width = params['NUMBERS'][0]
-        height = params['NUMBERS'][1]
+        newWidth = params['NUMBERS'][0]
+        newHeight = params['NUMBERS'][1]
 
-    startSide = params.get('SIDES', "center")
-    startSection = params.get('SECTION', None)
+    #Put in some defaults if no crop size specified
+    if newWidth is None or newHeight is None:
+        newWidth = int(width / 2)
+        newHeight = int(height / 2)
 
-    if width is None or height is None:
-        width = int(image.size[0] / 2)
-        height = int(image.size[1] / 2)
     # positions can be: center, topleft, topright, bottomleft, bottomright
-    # Seems that 0,0 is topleft
-    # im.crop((left, top, right, bottom))
-    top = 0
-    left = 0
-    bottom = height
-    right = width
-    if startSide == "center":
-        
-        middle = image.size[0] - width
-        left = middle - int(width / 2)
-        right = middle + int(width / 2)
+    # Seems that 0,0 is topleft -> set that as default
+    startSide = params.get('SIDE', "center")
+    #Make center the default
+    middle = int(width/2)
+    left = middle - int(newWidth / 2)
+    right = middle + int(newWidth / 2)
 
-        middle = image.size[1] - height
-        bottom = middle + int(height / 2)
-        top = middle - int(height / 2)
-    else:
-        if startSection.lower() == "bottom":
-            bottom = image.size[1]
-            top = image.size[1] - height
-        if startSide.lower() == "right":
-            right = image.size[0]
-            left = image.size[0] - width
+    middle = int(height/2)
+    bottom = middle + int(newHeight / 2)
+    top = middle - int(newHeight / 2)
+
+    #Make specified movements:
+    if 'DOWN' in params:
+        bottom = height
+        top = height - newHeight
+
+    elif 'UP' in params:
+        bottom = newHeight
+        top = 0
+
+    if startSide.lower() == "right":
+        right = width
+        left = width - newWidth
+
+    elif startSide.lower() == "left":
+        right = newWidth
+        left = 0
 
     return image.crop((left, top, right, bottom))
 
