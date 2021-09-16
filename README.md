@@ -1,1 +1,1 @@
-A Python application that transforms images in the described by the user.  
+A Python application that transforms images in the ways described by the user.  
