@@ -18,11 +18,7 @@ def main(nlp, newImg):
     if(userIn.lower().strip() == "quit"):
         print("Bye!")
         return False
-    '''
-    if(userIn.lower().replace(" ","").strip().startswith("setdefault")):
-        newImg.setDefault(userIn.lower().strip().split("default")[-1])
-        return True
-    '''
+
     if(userIn.lower().strip().startswith("rollback")):
         newImg.rollbackImage()
         newImg.showImage()
@@ -36,7 +32,10 @@ def main(nlp, newImg):
         #spacy.displacy.serve(cmd, style="dep")
         # Get the root word, should be verb
         rt, params = getParameters(cmd)
-        deps = parseTreeNodes(cmd.root)
+        adjs = gatherAdjectives(cmd.root)
+        objs = getPossibleObjects(cmd.root)
+        objs.append(cmd.root.text)
+
         if rt is None:
             #If command couldn't be found let the user know
             print("Cannot recognize command: %s" % cmd.root.text.lower())
@@ -44,7 +43,7 @@ def main(nlp, newImg):
         #Reset and rollback are a bit different
         #Add methods here from ImageLayer that change as necessary
         #Build the method then call
-        success = newImg.commandHandler(rt, deps, params)
+        success = newImg.commandHandler(rt, adjs, objs, params)
 
     if success:
         newImg.showImage()
@@ -70,26 +69,27 @@ def parseCommands(userIn, nlp):
     return allCmds
 
 
-# Take the head node of the sentence, go through the tree
-def parseTreeNodes(head):
-    # Get direct object if it exists
-    dirObj = None
-    dependencies = {}
-    # Root node should be a verb, and should have a direct object (dobj)
-    dependencies["dobj"] = []
+# Since we deal with one command at a time, only one adj. should be passed
+def gatherAdjectives(head):
     for node in head.children:
-        # Find direct object, should only be one
-        if node.dep_ == "dobj" or node.dep_ == "appos":
-            dependencies["dobj"].append(node.text)
         #Look for advmod or npadvmod describing how to do this.
         if node.dep_ == "advmod" or node.dep_ == "npadvmod":
-            dependencies["modifier"] = node.text
+            return node.text
 
-    #If an object can't be found, try the root of the sentence
-    #Change this so multiple objects are identified.
-    dependencies["dobj"].append(head.text)
+    return None
 
-    return dependencies
+def getPossibleObjects(head):
+    types = ("dobj", "appos", "pobj")
+    object = list()
+
+    for node in head.children:
+        #Find direct objet or appos modifier
+        if node.dep_ in types:
+            object.append(node.text)
+
+        object.extend(getPossibleObjects(node))
+
+    return object
 
 def updateEntityList():
     #Load in what we're looking for

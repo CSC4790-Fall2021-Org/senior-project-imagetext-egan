@@ -26,14 +26,13 @@ class ImageLayer:
         self.lastImg = Image.open(self.PATH + self.WORKING_IMAGE)
 
 
-    def commandHandler(self, method, deps, params):
+    def commandHandler(self, method, adjs, objs, params):
         #Find the image we want to deal with
         exist = False
-        if "dobj" in deps:
-            for element in deps["dobj"]:
-                holder = self.imgExists(element)
-                if(holder != False):
-                    exist = holder
+        for element in objs:
+            holder = self.imgExists(element)
+            if(holder != False):
+                exist = holder
 
             #IF exist = false, might use OpenCV
             if exist != False and exist != self.WORKING_IMAGE:
@@ -42,7 +41,7 @@ class ImageLayer:
 
         if method == "reset":
             self.currImg = Image.open(self.PATH + self.WORKING_IMAGE)
-            
+
         elif method == "set":
             if exist != False:
                 self.setDefault(exist)
@@ -50,7 +49,7 @@ class ImageLayer:
                 print("Could not find image.")
                 return False
         else:
-            self.currImg = PillowLayer.getMethod(method, deps, params, self.currImg)
+            self.currImg = PillowLayer.getMethod(method, adjs, params, self.currImg)
 
         return True
 

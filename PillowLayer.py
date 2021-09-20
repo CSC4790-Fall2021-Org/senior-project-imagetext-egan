@@ -11,12 +11,12 @@ modify_less = ("little", "slightly", "less", "bit", "lightly", "somewhat")
 # Function names are lemmatized versions of the words
 # Each function takes optional args, returns new image
 # Function can be passed dictionary of options and tries to find them
-def getMethod(methodName, deps, parameters, image):
-    #Will always pass, image and tuple -> [parameters, deps]
-    return eval(methodName)(image, parameters, deps)
+def getMethod(methodName, adjs, parameters, image):
+    #Will always pass, image and tuple -> [parameters, adjs]
+    return eval(methodName)(image, parameters, adjs)
 
 # Needs an image, can have new size, startSideition,
-def crop(image, params, deps):
+def crop(image, params, adjs):
     #Start by getting a size for the crop
     newWidth = None
     newHeight = None
@@ -63,13 +63,13 @@ def crop(image, params, deps):
 
 
 # Needs an image, can have a blur percentage
-def blur(image, params, deps):
+def blur(image, params, adjs):
     pct = int(params['PERCENT']) if 'PERCENT' in params else None
     if pct is None:
         #Check to see if they used modifiers
-        if deps.get("modifier", None) in modify_more:
+        if adjs in modify_more:
             pct = 60
-        elif deps.get("modifier", None) in modify_less:
+        elif adjs in modify_less:
             pct = 15
         else:
             return image.filter(ImageFilter.BLUR)
@@ -77,48 +77,48 @@ def blur(image, params, deps):
     blurFormula = min(image.size[0], image.size[1]) / 20 * math.pow(pct, 2) / 10000
     return image.filter(ImageFilter.GaussianBlur(radius=blurFormula))
 
-def grayscale(image, params, deps):
+def grayscale(image, params, adjs):
 
     return ImageOps.grayscale(image)
 
-def invert(image, params, deps):
+def invert(image, params, adjs):
 
     return ImageOps.invert(image)
 
-def enhance(image, params, deps):
+def enhance(image, params, adjs):
 
-    if deps.get("modifier", None) in modify_more:
+    if adjs in modify_more:
         return image.filter(ImageFilter.EDGE_ENHANCE_MORE)
 
     return image.filter(ImageFilter.EDGE_ENHANCE)
 
-def emboss(image, params, deps):
+def emboss(image, params, adjs):
 
     return image.filter(ImageFilter.EMBOSS)
 
-def smooth(image, params, deps):
+def smooth(image, params, adjs):
 
-    if deps.get("modifier", None) in modify_more:
+    if adjs in modify_more:
         return image.filter(ImageFilter.SMOOTH_MORE)
 
     return image.filter(ImageFilter.SMOOTH)
 
-def sharpen(image, params, deps):
+def sharpen(image, params, adjs):
 
     return image.filter(ImageFilter.SHARPEN)
 
-def rotate(image, params, deps):
+def rotate(image, params, adjs):
 
     degrees = 180
 
     if len(params.get('NUMBERS',[])) == 1:
             degrees = params['NUMBERS'][0]
-    elif deps.get("modifier", None) in modify_more:
+    elif adjs in modify_more:
         degrees = 270
-    elif deps.get("modifier", None) in modify_less:
+    elif adjs in modify_less:
         degrees = 30
 
     return image.rotate(degrees, expand=True)
 
-def show(image, params, deps):
+def show(image, params, adjs):
     return image
