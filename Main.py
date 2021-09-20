@@ -7,39 +7,46 @@ pillow library for image editing.
 """
 print("Loading libraries... ")
 import spacy
-from PIL import Image
-import ImageChange
+from ImageLayer import ImageLayer
 from numerizer import numerize
 import re
 
-def main(nlp):
+def main(nlp, newImg):
     #Example: "Crop the image and rotate it and grayscale it"
     userIn = input("Cmd: ");
-    if(userIn == "quit"):
+
+    if(userIn.lower().strip() == "quit"):
         print("Bye!")
         return False
 
-    cmds = parseCommands(userIn, nlp)
-    theImg = Image.open("Koala.jpg")
+    if(userIn.lower().replace(" ","").strip().startswith("setdefault")):
+        newImg.setDefault(userIn.lower().strip().split("default")[-1])
+        return True
 
+    cmds = parseCommands(userIn, nlp)
     #Each command sep
+
     for cmd in cmds:
+        #spacy.displacy.serve(cmd, style="dep")
         # Get the root word, should be verb
         rt, params = getParameters(cmd)
         deps = parseTreeNodes(cmd.root)
+        print(deps)
         if rt is None:
             #If command couldn't be found let the user know
             print("Cannot recognize command: %s" % cmd.root.text.lower())
             return True
+        #Reset and rollback are a bit different
+        #Add methods here from ImageLayer that change as necessary
         #Build the method then call
-        theImg = ImageChange.getMethod(rt, deps, params, theImg)
+        newImg.commandHandler(rt, deps, params)
 
-    theImg.show()
+    newImg.showImage()
     return True
 
 def parseCommands(userIn, nlp):
     # Split up each command with "and" so that sentences don't get too long
-    commands = userIn.split("and")
+    commands = userIn.split(" and ")
     allCmds = list()
     #Process each command and return in a list
     #Split up by the keyword "and"
@@ -69,6 +76,10 @@ def parseTreeNodes(head):
         if node.dep_ == "advmod" or node.dep_ == "npadvmod":
             dependencies["modifier"] = node.text
 
+    #If an object can't be found, try the root of the sentence
+    if "dobj" not in dependencies:
+        dependencies["dobj"] = head.text
+
 
     return dependencies
 
@@ -77,8 +88,8 @@ def updateEntityList():
     downSections = ('bottom', 'lower')
     upSections = ('top', 'upper')
     sides = ('right', 'left')
-    #Find functions
-    functs = ('grayscale', 'crop', 'blur', 'rotate', 'invert', 'emboss', 'smooth', 'sharpen', 'enhance')
+    #Find functions #Add show, reset, rollback
+    functs = ('grayscale', 'crop', 'blur', 'rotate', 'invert', 'emboss', 'smooth', 'sharpen', 'enhance', 'reset','show','rollback')
     patterns = []
     for sect in downSections:
         patterns.append({"label": "DOWN", "pattern": [{"LOWER": sect}], "id": "DOWNSECT"})
@@ -119,6 +130,7 @@ if __name__ == "__main__":
     #Update entity list for nlp
     entity_ruler = nlp.add_pipe("entity_ruler")
     entity_ruler.initialize(lambda: [], nlp=nlp, patterns=updateEntityList())
+    images = ImageLayer()
     print("Done!")
-    while(main(nlp)):
-        continue
+    while(main(nlp, images)):
+        pass

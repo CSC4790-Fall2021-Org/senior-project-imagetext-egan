@@ -119,3 +119,6 @@ def rotate(image, params, deps):
         degrees = 30
 
     return image.rotate(degrees, expand=True)
+
+def show(image, params, deps):
+    return image
