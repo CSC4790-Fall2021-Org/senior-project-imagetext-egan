@@ -18,20 +18,25 @@ def main(nlp, newImg):
     if(userIn.lower().strip() == "quit"):
         print("Bye!")
         return False
-
+    '''
     if(userIn.lower().replace(" ","").strip().startswith("setdefault")):
         newImg.setDefault(userIn.lower().strip().split("default")[-1])
         return True
+    '''
+    if(userIn.lower().strip().startswith("rollback")):
+        newImg.rollbackImage()
+        newImg.showImage()
+        return True
+
 
     cmds = parseCommands(userIn, nlp)
     #Each command sep
-
+    newImg.setRollback()
     for cmd in cmds:
         #spacy.displacy.serve(cmd, style="dep")
         # Get the root word, should be verb
         rt, params = getParameters(cmd)
         deps = parseTreeNodes(cmd.root)
-        print(deps)
         if rt is None:
             #If command couldn't be found let the user know
             print("Cannot recognize command: %s" % cmd.root.text.lower())
@@ -39,9 +44,12 @@ def main(nlp, newImg):
         #Reset and rollback are a bit different
         #Add methods here from ImageLayer that change as necessary
         #Build the method then call
-        newImg.commandHandler(rt, deps, params)
+        success = newImg.commandHandler(rt, deps, params)
 
-    newImg.showImage()
+    if success:
+        newImg.showImage()
+    #Set where image should be rolled back to
+
     return True
 
 def parseCommands(userIn, nlp):
@@ -68,18 +76,18 @@ def parseTreeNodes(head):
     dirObj = None
     dependencies = {}
     # Root node should be a verb, and should have a direct object (dobj)
+    dependencies["dobj"] = []
     for node in head.children:
         # Find direct object, should only be one
         if node.dep_ == "dobj" or node.dep_ == "appos":
-            dependencies["dobj"] = node.text
+            dependencies["dobj"].append(node.text)
         #Look for advmod or npadvmod describing how to do this.
         if node.dep_ == "advmod" or node.dep_ == "npadvmod":
             dependencies["modifier"] = node.text
 
     #If an object can't be found, try the root of the sentence
-    if "dobj" not in dependencies:
-        dependencies["dobj"] = head.text
-
+    #Change this so multiple objects are identified.
+    dependencies["dobj"].append(head.text)
 
     return dependencies
 
@@ -89,7 +97,7 @@ def updateEntityList():
     upSections = ('top', 'upper')
     sides = ('right', 'left')
     #Find functions #Add show, reset, rollback
-    functs = ('grayscale', 'crop', 'blur', 'rotate', 'invert', 'emboss', 'smooth', 'sharpen', 'enhance', 'reset','show','rollback')
+    functs = ('grayscale', 'crop', 'blur', 'rotate', 'invert', 'emboss', 'smooth', 'sharpen', 'enhance', 'reset','show','set')
     patterns = []
     for sect in downSections:
         patterns.append({"label": "DOWN", "pattern": [{"LOWER": sect}], "id": "DOWNSECT"})

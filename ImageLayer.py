@@ -28,37 +28,50 @@ class ImageLayer:
 
     def commandHandler(self, method, deps, params):
         #Find the image we want to deal with
+        exist = False
         if "dobj" in deps:
-            exist = self.imgExists(deps["dobj"])
+            for element in deps["dobj"]:
+                holder = self.imgExists(element)
+                if(holder != False):
+                    exist = holder
+
             #IF exist = false, might use OpenCV
-            if exist != False:
+            if exist != False and exist != self.WORKING_IMAGE:
                 self.WORKING_IMAGE = exist
                 self.currImg = Image.open(self.PATH + exist)
 
         if method == "reset":
             self.currImg = Image.open(self.PATH + self.WORKING_IMAGE)
-        elif method == "rollback":
-            self.currImg = self.lastImg
+            
+        elif method == "set":
+            if exist != False:
+                self.setDefault(exist)
+            else:
+                print("Could not find image.")
+                return False
         else:
-            self.lastImg = self.currImg
             self.currImg = PillowLayer.getMethod(method, deps, params, self.currImg)
+
+        return True
 
 
     def showImage(self):
         if self.workingStyle == 1:
             self.currImg.show()
 
+    def setRollback(self):
+        self.lastImg = self.currImg
+
+    def rollbackImage(self):
+        self.currImg = self.lastImg
+
     def setDefault(self, imgName):
-        fileExists = self.imgExists(imgName)
-        if(fileExists != False):
-            self.WORKING_IMAGE = fileExists
-            self.currImg = Image.open(self.PATH + self.WORKING_IMAGE)
-            print("Updated default image.")
-            return True
-        print("Could not find image %s." % imgName.strip())
-        return False
+        self.WORKING_IMAGE = imgName
+        self.currImg = Image.open(self.PATH + self.WORKING_IMAGE)
+        print("Updated default image.")
 
     #Return file if it exists, else return false
+    #BUG: should only return if imagename exists?
     def imgExists(self, imgName):
         for file in glob.glob(self.PATH + "/*.*"):
             if os.path.basename(file).lower().startswith(imgName.lower().strip()):
