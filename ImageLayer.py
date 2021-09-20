@@ -23,7 +23,7 @@ class ImageLayer:
         #Default to pillow, use OpenCV when dealing w/specific elements
         self.workingStyle = 1
         self.currImg = Image.open(self.PATH + self.WORKING_IMAGE)
-        self.lastImg = Image.open(self.PATH + self.WORKING_IMAGE)
+        self.lastImg = list()
 
 
     def commandHandler(self, method, adjs, objs, params):
@@ -59,10 +59,13 @@ class ImageLayer:
             self.currImg.show()
 
     def setRollback(self):
-        self.lastImg = self.currImg
+        self.lastImg.append(self.currImg)
 
     def rollbackImage(self):
-        self.currImg = self.lastImg
+        if not self.lastImg:
+            print("Cannot rollback further.")
+        else:
+            self.currImg = self.lastImg.pop()
 
     def setDefault(self, imgName):
         self.WORKING_IMAGE = imgName
