@@ -10,24 +10,26 @@ import spacy
 from ImageLayer import ImageLayer
 from numerizer import numerize
 import re
+import Values
 
 def main(nlp, newImg):
     #Example: "Crop the image and rotate it and grayscale it"
     userIn = input("Cmd: ");
+    success = False
 
     if(userIn.lower().strip() == "quit"):
         print("Bye!")
         return False
 
-    if(userIn.lower().strip().startswith("rollback")):
-        newImg.rollbackImage()
+    if(userIn.lower().strip().startswith("undo")):
+        newImg.undoImage()
         newImg.showImage()
         return True
 
 
     cmds = parseCommands(userIn, nlp)
     #Each command sep
-    newImg.setRollback()
+    newImg.setUndo()
     for cmd in cmds:
         #spacy.displacy.serve(cmd, style="dep")
         # Get the root word, should be verb
@@ -40,7 +42,7 @@ def main(nlp, newImg):
             #If command couldn't be found let the user know
             print("Cannot recognize command: %s" % cmd.root.text.lower())
             return True
-        #Reset and rollback are a bit different
+        #Reset and undo are a bit different
         #Add methods here from ImageLayer that change as necessary
         #Build the method then call
         success = newImg.commandHandler(rt, adjs, objs, params)
@@ -52,12 +54,30 @@ def main(nlp, newImg):
     return True
 
 def parseCommands(userIn, nlp):
-    # Split up each command with "and" so that sentences don't get too long
-    commands = userIn.split(" and ")
+
+    #Split it up by sentences, commas, and keyword "and"
+    commands = userIn.split()
+    separatedCmds = list()
+    lastSplit = 0
+    for i,v in enumerate(commands):
+        if v.lower() in Values.functs:
+            separatedCmds.append(commands[lastSplit : i])
+            lastSplit = i
+    separatedCmds.append(commands[lastSplit : ])
+
+    #The commands have been separated out, now need to rebuild sentences
+    sentences = list()
+    for x in range(1, len(separatedCmds)):
+        fullSentence = ""
+        for word in separatedCmds[x]:
+            if word not in Values.unneededWords:
+                fullSentence += word + " "
+        sentences.append(fullSentence.strip())
+
     allCmds = list()
     #Process each command and return in a list
     #Split up by the keyword "and"
-    for cmd in commands:
+    for cmd in sentences:
         cmd = cmd.strip()
         if not cmd.endswith("."):
             cmd = cmd + "."
@@ -79,35 +99,15 @@ def gatherAdjectives(head):
     return None
 
 def getPossibleObjects(head):
-    types = ("dobj", "appos", "pobj")
     object = list()
-
     for node in head.children:
         #Find direct objet or appos modifier
-        if node.dep_ in types:
+        if node.dep_ in Values.types:
             object.append(node.text)
 
         object.extend(getPossibleObjects(node))
 
     return object
-
-def updateEntityList():
-    #Load in what we're looking for
-    downSections = ('bottom', 'lower')
-    upSections = ('top', 'upper')
-    sides = ('right', 'left')
-    #Find functions #Add show, reset, rollback
-    functs = ('grayscale', 'crop', 'blur', 'rotate', 'invert', 'emboss', 'smooth', 'sharpen', 'enhance', 'reset','show','set')
-    patterns = []
-    for sect in downSections:
-        patterns.append({"label": "DOWN", "pattern": [{"LOWER": sect}], "id": "DOWNSECT"})
-    for sect in upSections:
-        patterns.append({"label": "UP", "pattern": [{"LOWER": sect}], "id": "UPSECT"})
-    for side in sides:
-        patterns.append({"label": "SIDE", "pattern": [{"LOWER": side}], "id": "SIDES"})
-    for func in functs:
-        patterns.append({"label": "FUNCT", "pattern": [{"LOWER": func}], "id": "FUNCTION"})
-    return patterns
 
 #Should be recieving one sentence
 #Returns a dict with [keyword : parameter]
@@ -131,6 +131,15 @@ def getParameters(doc):
         params['NUMBERS'] = nums
 
     return funcToCall, params
+
+def updateEntityList():
+    #Load in what we're looking for
+    patterns = []
+    for i, v in enumerate(Values.allEnts):
+        for s in v:
+            patterns.append({"label": Values.entLabels[i][0], "pattern": [{"LOWER": s}], "id": Values.entLabels[i][1]})
+
+    return patterns
 
 if __name__ == "__main__":
     #Load in spacy nlp -> takes about 1.5-2 seconds:

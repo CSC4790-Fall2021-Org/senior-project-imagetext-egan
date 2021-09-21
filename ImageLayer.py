@@ -18,11 +18,11 @@ class ImageLayer:
 
     def __init__(self):
         self.PATH = "./Pictures/"
-        self.WORKING_IMAGE = "Koala.jpg"
+        self.workingImage = "Koala.jpg"
         #See if working w/OpenCV[0] or Pillow[1]
         #Default to pillow, use OpenCV when dealing w/specific elements
         self.workingStyle = 1
-        self.currImg = Image.open(self.PATH + self.WORKING_IMAGE)
+        self.currImg = Image.open(self.PATH + self.workingImage)
         self.lastImg = list()
 
 
@@ -35,12 +35,12 @@ class ImageLayer:
                 exist = holder
 
             #IF exist = false, might use OpenCV
-            if exist != False and exist != self.WORKING_IMAGE:
-                self.WORKING_IMAGE = exist
+            if exist != False and exist != self.workingImage:
+                self.workingImage = exist
                 self.currImg = Image.open(self.PATH + exist)
 
         if method == "reset":
-            self.currImg = Image.open(self.PATH + self.WORKING_IMAGE)
+            self.currImg = Image.open(self.PATH + self.workingImage)
 
         elif method == "set":
             if exist != False:
@@ -58,18 +58,18 @@ class ImageLayer:
         if self.workingStyle == 1:
             self.currImg.show()
 
-    def setRollback(self):
+    def setUndo(self):
         self.lastImg.append(self.currImg)
 
-    def rollbackImage(self):
+    def undoImage(self):
         if not self.lastImg:
-            print("Cannot rollback further.")
+            print("Cannot undo further.")
         else:
             self.currImg = self.lastImg.pop()
 
     def setDefault(self, imgName):
-        self.WORKING_IMAGE = imgName
-        self.currImg = Image.open(self.PATH + self.WORKING_IMAGE)
+        self.workingImage = imgName
+        self.currImg = Image.open(self.PATH + self.workingImage)
         print("Updated default image.")
 
     #Return file if it exists, else return false

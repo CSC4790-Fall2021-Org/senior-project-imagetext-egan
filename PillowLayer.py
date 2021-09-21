@@ -1,16 +1,9 @@
 from PIL import Image, ImageOps, ImageFilter
 import os
 import math
-
-
-#Here are some of the modifiers we're looking for:
-modify_more = ("lot", "greatly", "more", "significantly", "really", "substantially")
-modify_less = ("little", "slightly", "less", "bit", "lightly", "somewhat")
+import Values
 
 # Functions related to the ways an image can change
-# Function names are lemmatized versions of the words
-# Each function takes optional args, returns new image
-# Function can be passed dictionary of options and tries to find them
 def getMethod(methodName, adjs, parameters, image):
     #Will always pass, image and tuple -> [parameters, adjs]
     return eval(methodName)(image, parameters, adjs)
@@ -67,9 +60,9 @@ def blur(image, params, adjs):
     pct = int(params['PERCENT']) if 'PERCENT' in params else None
     if pct is None:
         #Check to see if they used modifiers
-        if adjs in modify_more:
+        if adjs in Values.modify_more:
             pct = 60
-        elif adjs in modify_less:
+        elif adjs in Values.modify_less:
             pct = 15
         else:
             return image.filter(ImageFilter.BLUR)
@@ -87,7 +80,7 @@ def invert(image, params, adjs):
 
 def enhance(image, params, adjs):
 
-    if adjs in modify_more:
+    if adjs in Values.modify_more:
         return image.filter(ImageFilter.EDGE_ENHANCE_MORE)
 
     return image.filter(ImageFilter.EDGE_ENHANCE)
@@ -98,7 +91,7 @@ def emboss(image, params, adjs):
 
 def smooth(image, params, adjs):
 
-    if adjs in modify_more:
+    if adjs in Values.modify_more:
         return image.filter(ImageFilter.SMOOTH_MORE)
 
     return image.filter(ImageFilter.SMOOTH)
@@ -113,9 +106,9 @@ def rotate(image, params, adjs):
 
     if len(params.get('NUMBERS',[])) == 1:
             degrees = params['NUMBERS'][0]
-    elif adjs in modify_more:
+    elif adjs in Values.modify_more:
         degrees = 270
-    elif adjs in modify_less:
+    elif adjs in Values.modify_less:
         degrees = 30
 
     return image.rotate(degrees, expand=True)
