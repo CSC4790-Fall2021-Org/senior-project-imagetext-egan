@@ -11,7 +11,8 @@ functs = {
     'invert', 'emboss',
     'smooth', 'sharpen',
     'enhance', 'reset',
-    'show','set','undo'
+    'show','set','undo',
+    'revert'
     }
 
 #Store all entities in this tuple
@@ -43,4 +44,4 @@ modify_less = {
     }
 
 #Unncessary words to be removed
-unneededWords = {'and'}
+breakWords = {'and',','}

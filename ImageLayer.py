@@ -23,7 +23,7 @@ class ImageLayer:
         #Default to pillow, use OpenCV when dealing w/specific elements
         self.workingStyle = 1
         self.currImg = Image.open(self.PATH + self.workingImage)
-        self.lastImg = list()
+        self.lastImg = [self.currImg]
 
 
     def commandHandler(self, method, adjs, objs, params):
@@ -39,7 +39,7 @@ class ImageLayer:
                 self.workingImage = exist
                 self.currImg = Image.open(self.PATH + exist)
 
-        if method == "reset":
+        if method == "reset" or method == "revert":
             self.currImg = Image.open(self.PATH + self.workingImage)
 
         elif method == "set":

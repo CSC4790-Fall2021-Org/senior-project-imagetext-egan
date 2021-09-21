@@ -7,9 +7,9 @@ pillow library for image editing.
 """
 print("Loading libraries... ")
 import spacy
-from ImageLayer import ImageLayer
-from numerizer import numerize
 import re
+from numerizer import numerize
+from ImageLayer import ImageLayer
 import Values
 
 def main(nlp, newImg):
@@ -20,13 +20,6 @@ def main(nlp, newImg):
     if(userIn.lower().strip() == "quit"):
         print("Bye!")
         return False
-
-    '''
-    if(userIn.lower().strip().startswith("undo")):
-        newImg.undoImage()
-        newImg.showImage()
-        return True
-    '''
 
     cmds = parseCommands(userIn, nlp)
     #Each command sep
@@ -40,9 +33,8 @@ def main(nlp, newImg):
         objs.append(cmd.root.text)
 
         if rt is None:
-            #If command couldn't be found let the user know
-            print("Cannot recognize command: %s" % cmd.root.text.lower())
-            return True
+            #Command could not be found
+            continue
         #Reset and undo are a bit different
         #Add methods here from ImageLayer that change as necessary
         #Build the method then call
@@ -50,34 +42,32 @@ def main(nlp, newImg):
 
     if success:
         newImg.showImage()
-    #Set where image should be rolled back to
-    newImg.setUndo()
+        #Set where image should be rolled back to
+        newImg.setUndo()
     return True
 
 def parseCommands(userIn, nlp):
     doc = nlp(userIn.lower())
     #Split it up by sentences, commas, and keyword "and"
-    commands = [token.lemma_ for token in doc]
-    print(commands)
+    commands = [token.text for token in doc]
     separatedCmds = list()
     lastSplit = 0
     for i,v in enumerate(commands):
-        if v.lower() in Values.functs:
+        if v.lower() in Values.breakWords:
             separatedCmds.append(commands[lastSplit : i])
             lastSplit = i
     separatedCmds.append(commands[lastSplit : ])
 
     #The commands have been separated out, now need to rebuild sentences
     sentences = list()
-    for x in range(1, len(separatedCmds)):
+    for x in range(0, len(separatedCmds)):
         fullSentence = ""
         for word in separatedCmds[x]:
-            if word not in Values.unneededWords:
+            if word not in Values.breakWords:
                 fullSentence += word + " "
         sentences.append(fullSentence.strip())
 
     allCmds = list()
-    print(sentences)
     #Process each command and return in a list
     #Split up by the keyword "and"
     for cmd in sentences:
