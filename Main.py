@@ -21,15 +21,16 @@ def main(nlp, newImg):
         print("Bye!")
         return False
 
+    '''
     if(userIn.lower().strip().startswith("undo")):
         newImg.undoImage()
         newImg.showImage()
         return True
-
+    '''
 
     cmds = parseCommands(userIn, nlp)
     #Each command sep
-    newImg.setUndo()
+
     for cmd in cmds:
         #spacy.displacy.serve(cmd, style="dep")
         # Get the root word, should be verb
@@ -50,13 +51,14 @@ def main(nlp, newImg):
     if success:
         newImg.showImage()
     #Set where image should be rolled back to
-
+    newImg.setUndo()
     return True
 
 def parseCommands(userIn, nlp):
-
+    doc = nlp(userIn.lower())
     #Split it up by sentences, commas, and keyword "and"
-    commands = userIn.split()
+    commands = [token.lemma_ for token in doc]
+    print(commands)
     separatedCmds = list()
     lastSplit = 0
     for i,v in enumerate(commands):
@@ -75,10 +77,11 @@ def parseCommands(userIn, nlp):
         sentences.append(fullSentence.strip())
 
     allCmds = list()
+    print(sentences)
     #Process each command and return in a list
     #Split up by the keyword "and"
     for cmd in sentences:
-        cmd = cmd.strip()
+        cmd = cmd.strip().lower()
         if not cmd.endswith("."):
             cmd = cmd + "."
         toks = nlp(cmd)
@@ -137,7 +140,7 @@ def updateEntityList():
     patterns = []
     for i, v in enumerate(Values.allEnts):
         for s in v:
-            patterns.append({"label": Values.entLabels[i][0], "pattern": [{"LOWER": s}], "id": Values.entLabels[i][1]})
+            patterns.append({"label": Values.entLabels[i][0], "pattern": [{"LEMMA": s}], "id": Values.entLabels[i][1]})
 
     return patterns
 

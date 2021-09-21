@@ -48,6 +48,8 @@ class ImageLayer:
             else:
                 print("Could not find image.")
                 return False
+        elif method == "undo":
+            self.undoImage()
         else:
             self.currImg = PillowLayer.getMethod(method, adjs, params, self.currImg)
 
@@ -64,8 +66,12 @@ class ImageLayer:
     def undoImage(self):
         if not self.lastImg:
             print("Cannot undo further.")
-        else:
+        elif len(self.lastImg) == 1:
             self.currImg = self.lastImg.pop()
+        else:
+            self.lastImg.pop()
+            self.currImg = self.lastImg.pop()
+
 
     def setDefault(self, imgName):
         self.workingImage = imgName

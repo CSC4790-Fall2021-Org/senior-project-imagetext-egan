@@ -11,7 +11,7 @@ functs = {
     'invert', 'emboss',
     'smooth', 'sharpen',
     'enhance', 'reset',
-    'show','set'
+    'show','set','undo'
     }
 
 #Store all entities in this tuple
