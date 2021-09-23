@@ -13,7 +13,7 @@ from ImageLayer import ImageLayer
 import Values
 
 def main(nlp, newImg):
-    #Example: "Crop the image and rotate it and grayscale it"
+    #Example: "Crop the image to 500x500 from the top left and rotate it 90 degrees and grayscale it"
     userIn = input("Cmd: ");
     success = False
 
@@ -29,16 +29,15 @@ def main(nlp, newImg):
         # Get the root word, should be verb
         rt, params = getParameters(cmd)
         adjs = gatherAdjectives(cmd.root)
-        objs = getPossibleObjects(cmd.root)
-        objs.append(cmd.root.text)
 
         if rt is None:
             #Command could not be found
             continue
+        objs = getPossibleObjects(cmd[cmd.end-2], rt[0])
         #Reset and undo are a bit different
         #Add methods here from ImageLayer that change as necessary
         #Build the method then call
-        success = newImg.commandHandler(rt, adjs, objs, params)
+        success = newImg.commandHandler(rt.lemma_.lower(), adjs, objs, params)
 
     if success:
         newImg.showImage()
@@ -47,7 +46,7 @@ def main(nlp, newImg):
     return True
 
 def parseCommands(userIn, nlp):
-    doc = nlp(userIn.lower())
+    doc = nlp.make_doc(userIn.lower())
     #Split it up by sentences, commas, and keyword "and"
     commands = [token.text for token in doc]
     separatedCmds = list()
@@ -91,16 +90,21 @@ def gatherAdjectives(head):
 
     return None
 
-def getPossibleObjects(head):
-    object = list()
-    for node in head.children:
-        #Find direct objet or appos modifier
-        if node.dep_ in Values.types:
-            object.append(node.text)
+#Rewrite -> elements right of command given???
+def getPossibleObjects(lastWord, cmd):
 
-        object.extend(getPossibleObjects(node))
+    objs = list()
+    if(cmd.text == lastWord.text):
+        return objs
+    cmd = cmd.nbor()
 
-    return object
+    while(cmd.tag_ in Values.possObjs):
+        objs.append(cmd.text)
+        if(cmd.text == lastWord.text):
+            break
+        cmd = cmd.nbor()
+
+    return objs
 
 #Should be recieving one sentence
 #Returns a dict with [keyword : parameter]
@@ -116,7 +120,7 @@ def getParameters(doc):
         elif ent.label_ == "PERCENT":
             params[ent.label_] = re.findall(r'\d+', numerize(ent.text))[0]
         elif ent.label_ == "FUNCT":
-            funcToCall = ent.text.lower()
+            funcToCall = ent
         else:
             params[ent.label_] = ent.text
 
@@ -128,9 +132,13 @@ def getParameters(doc):
 def updateEntityList():
     #Load in what we're looking for
     patterns = []
+
     for i, v in enumerate(Values.allEnts):
         for s in v:
-            patterns.append({"label": Values.entLabels[i][0], "pattern": [{"LEMMA": s}], "id": Values.entLabels[i][1]})
+            patterns.append({"label": Values.entLabels[i][0], "pattern": [{"LOWER": s}], "id": Values.entLabels[i][1]})
+    #Add lemma for commands?
+    for func in Values.functs:
+        patterns.append({"label": "FUNCT", "pattern": [{"LEMMA": func}], "id": "FUNCTION"})
 
     return patterns
 

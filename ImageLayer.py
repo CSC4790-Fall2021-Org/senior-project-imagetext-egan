@@ -30,6 +30,7 @@ class ImageLayer:
         #Find the image we want to deal with
         exist = False
         for element in objs:
+
             holder = self.imgExists(element)
             if(holder != False):
                 exist = holder
