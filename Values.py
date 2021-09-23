@@ -29,8 +29,8 @@ entLabels = (
 #Object types
 types = {"dobj", "appos", "pobj","compound","nsubj"}
 
-#Possible Objs (using tag, could use pos)
-possObjs = {"NN", "DT", "PRP"}
+#Possible Objs (using pos, could use tag)
+possObjs = {"NOUN","PRON","PROPN","NNS" "DET", "X"}
 
 #Adjective types
 #Here are some of the modifiers we're looking for:

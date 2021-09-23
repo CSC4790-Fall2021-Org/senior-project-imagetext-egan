@@ -95,10 +95,12 @@ def getPossibleObjects(lastWord, cmd):
 
     objs = list()
     if(cmd.text == lastWord.text):
+
         return objs
     cmd = cmd.nbor()
 
-    while(cmd.tag_ in Values.possObjs):
+    while(cmd.pos_ in Values.possObjs):
+
         objs.append(cmd.text)
         if(cmd.text == lastWord.text):
             break
