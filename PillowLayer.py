@@ -23,8 +23,7 @@ def crop(image, params, adjs):
         newWidth = int(width / 2)
         newHeight = int(height / 2)
 
-    # positions can be: center, topleft, topright, bottomleft, bottomright
-    # Seems that 0,0 is topleft -> set that as default
+    # Seems that 0,0 is topleft
     startSide = params.get('SIDE', "center")
     #Make center the default
     middle = int(width/2)
@@ -39,7 +38,6 @@ def crop(image, params, adjs):
     if 'DOWN' in params:
         bottom = height
         top = height - newHeight
-
     elif 'UP' in params:
         bottom = newHeight
         top = 0
@@ -47,7 +45,6 @@ def crop(image, params, adjs):
     if startSide.lower() == "right":
         right = width
         left = width - newWidth
-
     elif startSide.lower() == "left":
         right = newWidth
         left = 0

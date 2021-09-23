@@ -23,8 +23,7 @@ class ImageLayer:
         #Default to pillow, use OpenCV when dealing w/specific elements
         self.workingStyle = 1
         self.currImg = Image.open(self.PATH + self.workingImage)
-        self.lastImg = [self.currImg]
-
+        self.lastImg = [(self.workingImage, self.currImg)]
 
     def commandHandler(self, method, adjs, objs, params):
         #Find the image we want to deal with
@@ -62,17 +61,17 @@ class ImageLayer:
             self.currImg.show()
 
     def setUndo(self):
-        self.lastImg.append(self.currImg)
+        self.lastImg.append((self.workingImage, self.currImg))
 
     def undoImage(self):
-        if not self.lastImg:
+
+        if not self.lastImg or len(self.lastImg) <= 1:
+            self.workingImage, self.currImg = self.lastImg.pop()
             print("Cannot undo further.")
-        elif len(self.lastImg) == 1:
-            self.currImg = self.lastImg.pop()
         else:
             self.lastImg.pop()
-            self.currImg = self.lastImg.pop()
-
+            self.workingImage, self.currImg = self.lastImg.pop()
+            print(self.lastImg)
 
     def setDefault(self, imgName):
         self.workingImage = imgName

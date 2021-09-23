@@ -25,7 +25,7 @@ def main(nlp, newImg):
     #Each command sep
 
     for cmd in cmds:
-        #spacy.displacy.serve(cmd, style="dep")
+        #spacy.displacy.serve(cmd, style="ent")
         # Get the root word, should be verb
         rt, params = getParameters(cmd)
         adjs = gatherAdjectives(cmd.root)
@@ -37,7 +37,7 @@ def main(nlp, newImg):
         #Reset and undo are a bit different
         #Add methods here from ImageLayer that change as necessary
         #Build the method then call
-        success = newImg.commandHandler(rt.lemma_.lower(), adjs, objs, params)
+        success = newImg.commandHandler(rt.lemma_, adjs, objs, params)
 
     if success:
         newImg.showImage()
@@ -52,7 +52,7 @@ def parseCommands(userIn, nlp):
     separatedCmds = list()
     lastSplit = 0
     for i,v in enumerate(commands):
-        if v.lower() in Values.breakWords:
+        if v in Values.breakWords:
             separatedCmds.append(commands[lastSplit : i])
             lastSplit = i
     separatedCmds.append(commands[lastSplit : ])
@@ -116,6 +116,7 @@ def getParameters(doc):
     funcToCall = None
     for ent in doc.ents:
         if ent.label_ == "CARDINAL" or ent.label_ == "QUANTITY":
+
             for s in re.findall(r'\d+', numerize(ent.text)):
                 nums.append(int(s))
         #ASSUME THERE IS A NUMBER HERE
