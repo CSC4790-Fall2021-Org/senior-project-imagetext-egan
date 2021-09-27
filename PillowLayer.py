@@ -2,6 +2,7 @@ from PIL import Image, ImageOps, ImageFilter
 import os
 import math
 import Values
+import OpenCVLayer
 
 # Functions related to the ways an image can change
 def getMethod(methodName, adjs, parameters, image):
@@ -10,6 +11,12 @@ def getMethod(methodName, adjs, parameters, image):
 
 # Needs an image, can have new size, startSideition,
 def crop(image, params, adjs):
+
+    #See if this is a special crop
+    if(params.get("SPECIAL", None) == "crop"):
+        buffer = params.get('NUMBERS', [0])
+        return crop_specific(image, OpenCVLayer.crop_params(ImageOps.grayscale(image),buffer[0]))
+
     #Start by getting a size for the crop
     newWidth = None
     newHeight = None
@@ -112,3 +119,26 @@ def rotate(image, params, adjs):
 
 def show(image, params, adjs):
     return image
+
+######################## OpenCV Specific Functions ############################
+
+def crop_specific(image, params):
+    #Make sure a face was found
+    if params is None:
+        print("No faces found")
+        return image
+
+    x,y,w,h,buffer = params
+    width, height = image.size
+    if buffer > 0:
+        #Make sure not out of the image
+        newX = x - buffer
+        newY = y - buffer
+        newW = w + buffer*2
+        newH = h + buffer*2
+
+        x = newX if newX > 0 else 0
+        y = newY if newY > 0 else 0
+        w = newW if x+newW < width else width
+        h = newH if y+newH < height else height
+    return image.crop((x, y, x+w, y+h))

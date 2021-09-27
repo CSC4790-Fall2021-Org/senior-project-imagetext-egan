@@ -25,7 +25,7 @@ def main(nlp, newImg):
     #Each command sep
 
     for cmd in cmds:
-        #spacy.displacy.serve(cmd, style="ent")
+        #spacy.displacy.serve(cmd, style="dep")
         # Get the root word, should be verb
         rt, params = getParameters(cmd)
         adjs = gatherAdjectives(cmd.root)

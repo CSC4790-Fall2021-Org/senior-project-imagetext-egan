@@ -13,7 +13,6 @@ import glob
 from PIL import Image
 import PillowLayer
 
-
 class ImageLayer:
 
     def __init__(self):
@@ -25,6 +24,9 @@ class ImageLayer:
         self.currImg = Image.open(self.PATH + self.workingImage)
         self.lastImg = [(self.workingImage, self.currImg)]
 
+        #Keywords flagged for opencv
+        self.cvKeywords = {'me', 'face'}
+
     def commandHandler(self, method, adjs, objs, params):
         #Find the image we want to deal with
         exist = False
@@ -35,9 +37,12 @@ class ImageLayer:
                 exist = holder
 
             #IF exist = false, might use OpenCV
-            if exist != False and exist != self.workingImage:
+            if exist and exist != self.workingImage:
                 self.workingImage = exist
                 self.currImg = Image.open(self.PATH + exist)
+            elif not exist:
+                if element in self.cvKeywords:
+                    params["SPECIAL"] = method
 
         if method == "reset" or method == "revert":
             self.currImg = Image.open(self.PATH + self.workingImage)
@@ -71,7 +76,6 @@ class ImageLayer:
         else:
             self.lastImg.pop()
             self.workingImage, self.currImg = self.lastImg.pop()
-            print(self.lastImg)
 
     def setDefault(self, imgName):
         self.workingImage = imgName
