@@ -7,6 +7,7 @@ import OpenCVLayer
 # Functions related to the ways an image can change
 def getMethod(methodName, adjs, parameters, image):
     #Will always pass, image and tuple -> [parameters, adjs]
+    image = ImageOps.exif_transpose(image)
     return eval(methodName)(image, parameters, adjs)
 
 # Needs an image, can have new size, startSideition,
@@ -61,7 +62,12 @@ def crop(image, params, adjs):
 
 # Needs an image, can have a blur percentage
 def blur(image, params, adjs):
-    pct = int(params['PERCENT']) if 'PERCENT' in params else None
+
+    if(params.get("SPECIAL", None) == "blur"):
+        buffer = params.get('NUMBERS', [0])
+        return blur_face(image, blur(image, {'PERCENT' : params.get('PERCENT', None)}, adjs), buffer[0])
+
+    pct = params.get('PERCENT', None)
     if pct is None:
         #Check to see if they used modifiers
         if adjs in Values.modify_more:
@@ -71,7 +77,7 @@ def blur(image, params, adjs):
         else:
             return image.filter(ImageFilter.BLUR)
     # Formula: min(x,y)/20 * pct^2/100^2 b/c blur uses radius
-    blurFormula = min(image.size[0], image.size[1]) / 20 * math.pow(pct, 2) / 10000
+    blurFormula = min(image.size[0], image.size[1]) / 20 * math.pow(int(pct), 2) / 10000
     return image.filter(ImageFilter.GaussianBlur(radius=blurFormula))
 
 def grayscale(image, params, adjs):
@@ -128,17 +134,11 @@ def crop_specific(image, params):
         print("No faces found")
         return image
 
-    x,y,w,h,buffer = params
-    width, height = image.size
-    if buffer > 0:
-        #Make sure not out of the image
-        newX = x - buffer
-        newY = y - buffer
-        newW = w + buffer*2
-        newH = h + buffer*2
+    x,y,w,h = params
 
-        x = newX if newX > 0 else 0
-        y = newY if newY > 0 else 0
-        w = newW if x+newW < width else width
-        h = newH if y+newH < height else height
     return image.crop((x, y, x+w, y+h))
+
+def blur_face(image, blurred, buffer):
+    
+    newImg = OpenCVLayer.blur_face(image, blurred, buffer)
+    return Image.fromarray(newImg).convert('RGB')

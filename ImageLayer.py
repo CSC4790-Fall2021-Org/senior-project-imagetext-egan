@@ -17,7 +17,7 @@ class ImageLayer:
 
     def __init__(self):
         self.PATH = "./Pictures/"
-        self.workingImage = "Koala.jpg"
+        self.workingImage = "therock.jpg"
         #See if working w/OpenCV[0] or Pillow[1]
         #Default to pillow, use OpenCV when dealing w/specific elements
         self.workingStyle = 1
@@ -31,13 +31,12 @@ class ImageLayer:
         #Find the image we want to deal with
         exist = False
         for element in objs:
-
             holder = self.imgExists(element)
             if(holder != False):
                 exist = holder
 
             #IF exist = false, might use OpenCV
-            if exist and exist != self.workingImage:
+            if exist != False and exist != self.workingImage:
                 self.workingImage = exist
                 self.currImg = Image.open(self.PATH + exist)
             elif not exist:
