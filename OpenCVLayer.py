@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import dlib
 from imutils import face_utils
-import numpy.polynomial.polynomial as poly
+
 #Returns positions of all faces. No faces returns None
 def find_face_haar(grayImg):
     haarFrontFace = cv2.CascadeClassifier('./Dependencies/haarcascade_frontalface_default.xml')
@@ -18,7 +18,7 @@ def find_face_dlib(grayImg):
 
     if len(rect) == 0:
         #No faces found
-        return None
+        return None, None
 
     rect = rect[0]
 
@@ -56,12 +56,19 @@ def blur_face(img, blurredImg, buffer):
 
     faceRect, faceXY = find_face_dlib(grayscaled)
 
+    if faceRect == None:
+        print("No faces found.")
+        return blurred
+
     if buffer < 0:
         buffer = 0
     #Crop to just the face
     x, y, w, h = buffered_vals(faceRect, buffer/2, grayscaled.shape)
 
     grayscaled = grayscaled[y:y+h, x:x+w]
+
+    #Try blurring the image to improve edge detection -> not great
+    #grayscaled = cv2.GaussianBlur(grayscaled,(3,3),cv2.BORDER_DEFAULT)
 
     #Apply canny edge detection
     grayscaled = cv2.Canny(grayscaled,100,200)
@@ -90,38 +97,31 @@ def blur_face(img, blurredImg, buffer):
 
         #Now we have values -> replace
         blurred[y+row, x+start:x+end] = cvImg[y+row, x+start:x+end]
-    #Now use the jaw points
-    #Make an equation
-    '''
-    coefs = poly.polyfit(faceX[:17], faceY[:17],8)
-    theVals = poly.polyval([*range(x, x+w)], coefs)
-    print(theVals)
-    print(faceY[33])
-    print(y)
-    for index, value in enumerate(theVals):
-        upperBound = int(min(value, y+h))
 
-        blurred[faceY[33]:upperBound, x+index] = cvImg[faceY[33]:upperBound, x+index]
-    '''
+    #Use points to create a mask
     routes = faceXY[:17]
+    faceTop = min(faceXY[19][1], faceXY[24][1])
+    newPoints = [[faceXY[16][0], faceTop],[faceXY[0][0], faceTop]]
+    #routes = np.append(routes, np.flipud(faceXY[18:27]), axis=0)
+    routes = np.append(routes, newPoints, axis=0)
     mask = np.zeros((cvImg.shape[0], cvImg.shape[1]))
     mask = cv2.fillConvexPoly(mask, np.array(routes), 1).astype(np.bool)
     blurred[mask] = cvImg[mask]
-
     return np.uint8(blurred)
 
 def buffered_vals(params, buffer, size):
     x,y,w,h = params
-    width, height = size
+    height, width = size
+    bufferWidth = int(buffer*2/3)
 
-    newX = x - buffer
-    newY = y - buffer
-    newW = w + buffer*2
+    newX = x - bufferWidth
+    newY = y - buffer - int(buffer/5)
+    newW = w + bufferWidth*2
     newH = h + buffer*2
 
-    x = newX if newX > 0 else 0
-    y = newY if newY > 0 else 0
-    w = newW if x+newW < width else width
-    h = newH if y+newH < height else height
+    x = max(newX, 0)
+    y = max(newY, 0)
+    w = min(x+newW, width) - x
+    h = min(y+newH, height) - y
 
     return (int(x),int(y),int(w),int(h))
