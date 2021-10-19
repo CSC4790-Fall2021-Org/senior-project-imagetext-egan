@@ -12,6 +12,7 @@ import os
 import glob
 from PIL import Image
 import PillowLayer
+import Values
 
 class ImageLayer:
 
@@ -24,24 +25,21 @@ class ImageLayer:
         self.currImg = Image.open(self.PATH + self.workingImage)
         self.lastImg = [(self.workingImage, self.currImg)]
 
-        #Keywords flagged for opencv
-        self.cvKeywords = {'me', 'face'}
-
     def commandHandler(self, method, adjs, objs, params):
         #Find the image we want to deal with
         exist = False
         for element in objs:
-            holder = self.imgExists(element)
-            if(holder != False):
-                exist = holder
+            exist = self.imgExists(element)
 
             #IF exist = false, might use OpenCV
             if exist != False and exist != self.workingImage:
                 self.workingImage = exist
                 self.currImg = Image.open(self.PATH + exist)
-            elif not exist:
-                if element in self.cvKeywords:
+            elif exist == False:
+                if element in Values.cvKeywords:
                     params["SPECIAL"] = method
+                if element in Values.kwParams:
+                    params["SPARAMS"] = element
 
         if method == "reset" or method == "revert":
             self.currImg = Image.open(self.PATH + self.workingImage)
@@ -84,7 +82,9 @@ class ImageLayer:
     #Return file if it exists, else return false
     #BUG: should only return if imagename exists?
     def imgExists(self, imgName):
+        imgName = imgName.lower().strip()
         for file in glob.glob(self.PATH + "/*.*"):
-            if os.path.basename(file).lower().startswith(imgName.lower().strip()):
+            name = os.path.basename(file).lower()
+            if name == imgName or name.split('.')[0] == imgName:
                 return os.path.basename(file)
         return False

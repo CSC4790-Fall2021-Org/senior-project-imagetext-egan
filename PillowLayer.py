@@ -65,7 +65,8 @@ def blur(image, params, adjs):
 
     if(params.get("SPECIAL", None) == "blur"):
         buffer = params.get('NUMBERS', [0])
-        return blur_face(image, blur(image, {'PERCENT' : params.get('PERCENT', None)}, adjs), buffer[0])
+        aroundFace = params.get("SPARAMS", "None")
+        return blur_face(image, params, adjs, buffer[0], aroundFace)
 
     pct = params.get('PERCENT', None)
     if pct is None:
@@ -138,7 +139,25 @@ def crop_specific(image, params):
 
     return image.crop((x, y, x+w, y+h))
 
-def blur_face(image, blurred, buffer):
-    
-    newImg = OpenCVLayer.blur_face(image, blurred, buffer)
+def blur_face(image, params, adjs, buffer, aroundFace):
+    #Blur around face
+    if aroundFace == "around":
+        blurred = blur(image, {'PERCENT' : params.get('PERCENT', None)}, adjs)
+        newImg = OpenCVLayer.blur_around_face(image, blurred, buffer)
+        return Image.fromarray(newImg).convert('RGB')
+    #Blur out the face
+    #Get an amount to blur it
+    pct = params.get('PERCENT', None)
+    if pct is None:
+        #Check to see if they used modifiers
+        if adjs in Values.modify_more:
+            pct = 80
+        elif adjs in Values.modify_less:
+            pct = 20
+        else:
+            pct = 50
+    buffer = params.get('NUMBERS', [0])
+    #Check to see if all faces must be blurred
+    blurAll = (aroundFace == "all")
+    newImg = OpenCVLayer.blur_face(image, int(pct), buffer[0], blurAll)
     return Image.fromarray(newImg).convert('RGB')

@@ -4,13 +4,39 @@ import dlib
 from imutils import face_utils
 
 #Returns positions of all faces. No faces returns None
+#FASTEST -> LEAST ACCURATE
 def find_face_haar(grayImg):
     haarFrontFace = cv2.CascadeClassifier('./Dependencies/haarcascade_frontalface_default.xml')
     #Change these parameters for better preformances
     faceRects = haarFrontFace.detectMultiScale(grayImg, scaleFactor = 1.4, minNeighbors = 5);
+
     return faceRects
 
+#SLOWEST -> MOST ACCURATE !!!REQUIRES GPU
+'''
+def find_face_nn(img):
+    #Load neural network if looking for all faces
+    detector = dlib.cnn_face_detection_model_v1("./Dependencies/mmod_human_face_detector.dat")
+    results = detector(img, 1)
+    boxes = list()
+    for r in results:
+        #Format x,y,w,h
+        boxes.append(face_utils.rect_to_bb(r.rect))
+
+    return boxes
+'''
+def just_faces_dlib(grayImg):
+    detector = dlib.get_frontal_face_detector()
+    results = detector(grayImg, 1)
+    boxes = list()
+    for r in results:
+        #Format x,y,w,h
+        boxes.append(face_utils.rect_to_bb(r))
+
+    return boxes
+#MEDIUM SPEED, MEDIUM ACCURACY
 def find_face_dlib(grayImg):
+
     detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor("./Dependencies/shape_predictor_68_face_landmarks.dat")
     #Face detections, we only want the first
@@ -38,18 +64,57 @@ def find_face_dlib(grayImg):
 #Return the first found face. Return None if no faces found
 def crop_params(img, buffer):
     cvImg = np.array(img)
-    params = find_face_haar(cvImg)
+    faces = find_face_haar(cvImg)
 
-    if len(params) == 0:
+    if len(faces) == 0:
         return None
 
     if buffer < 0:
         buffer = 0
 
-    #Return tuple: x,y; w,h;
-    return buffered_vals(params[0], buffer/2, cvImg.shape)
+    #Return tuple: x,y,w,h;
+    return buffered_vals(faces[0], buffer/2, cvImg.shape)
 
-def blur_face(img, blurredImg, buffer):
+def blur_face(img, blurPct, buffer, blurAll):
+    cvImg = np.array(img)
+    grayscaled = cv2.cvtColor(cvImg, cv2.COLOR_BGR2GRAY)
+
+    if blurAll:
+        faces = just_faces_dlib(grayscaled)
+        if len(faces) == 0:
+            print("Could not find any faces")
+            return cvImg
+    else:
+        faces = find_face_haar(grayscaled)
+        if len(faces) == 0:
+            print("Could not find face")
+            return cvImg
+        faces = [faces[0]]
+
+    if buffer < 0:
+        buffer = 0
+
+    for face in faces:
+        x,y,w,h = buffered_vals(face, buffer/2, grayscaled.shape)
+
+        #Divide face area up into N rects (Default of 10)
+        numRects = 21 - int(20 * blurPct/100)
+        xRects = np.linspace(x, x+w, numRects + 1, dtype="int")
+        yRects = np.linspace(y, y+h, numRects + 1, dtype="int")
+        #Loop through each rect and take the mean of that area:
+        for i in range(1, len(yRects)):
+            for j in range(1, len(xRects)):
+                #Get starting and ending coordinates
+                startXY = xRects[j - 1], yRects[i - 1]
+                endXY = xRects[j], yRects[i]
+                blurArea = cvImg[startXY[1]:endXY[1], startXY[0]:endXY[0]]
+                (B, G, R) = [int(x) for x in cv2.mean(blurArea)[:3]]
+                cv2.rectangle(cvImg, startXY, endXY, (B, G, R), -1)
+
+    return np.uint8(cvImg)
+
+
+def blur_around_face(img, blurredImg, buffer):
     cvImg = np.array(img)
     blurred = np.array(blurredImg)
     grayscaled = cv2.cvtColor(cvImg, cv2.COLOR_BGR2GRAY)

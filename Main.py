@@ -95,17 +95,15 @@ def getPossibleObjects(lastWord, cmd):
 
     objs = list()
     if(cmd.text == lastWord.text):
-
         return objs
+
     cmd = cmd.nbor()
 
-    while(cmd.pos_ in Values.possObjs):
-
+    while((cmd.pos_ in Values.possObjs) or (cmd.text in Values.cvKeywords) or (cmd.text in Values.kwParams)):
         objs.append(cmd.text)
         if(cmd.text == lastWord.text):
             break
         cmd = cmd.nbor()
-
     return objs
 
 #Should be recieving one sentence

@@ -30,7 +30,11 @@ entLabels = (
 types = {"dobj", "appos", "pobj","compound","nsubj"}
 
 #Possible Objs (using pos, could use tag)
-possObjs = {"NOUN","PRON","PROPN","NNS" "DET", "X"}
+possObjs = {"NOUN","PRON","PROPN","NNS","DET","X","NUM"}
+
+#OpenCV keywords
+cvKeywords = {'me','my','face','our','faces','head','heads'}
+kwParams = {'around', 'except', 'everything', 'all'}
 
 #Adjective types
 #Here are some of the modifiers we're looking for:
