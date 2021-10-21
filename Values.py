@@ -33,7 +33,7 @@ types = {"dobj", "appos", "pobj","compound","nsubj"}
 possObjs = {"NOUN","PRON","PROPN","NNS","DET","X","NUM"}
 
 #OpenCV keywords
-cvKeywords = {'me','my','face','our','faces','head','heads'}
+cvKeywords = {'me','face', 'head', 'faces', 'heads'}
 kwParams = {'around', 'except', 'everything', 'all'}
 
 #Adjective types

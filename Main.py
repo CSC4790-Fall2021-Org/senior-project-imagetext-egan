@@ -98,12 +98,14 @@ def getPossibleObjects(lastWord, cmd):
         return objs
 
     cmd = cmd.nbor()
-
-    while((cmd.pos_ in Values.possObjs) or (cmd.text in Values.cvKeywords) or (cmd.text in Values.kwParams)):
+    while((cmd.pos_ in Values.possObjs) or (cmd.lemma_ in Values.cvKeywords) or (cmd.lemma_ in Values.kwParams)):
         objs.append(cmd.text)
         if(cmd.text == lastWord.text):
             break
         cmd = cmd.nbor()
+        #Skip possesive word -> should not be multiple in a row
+        if cmd.tag_ == "PRP$" and cmd.text != lastWord.text:
+            cmd = cmd.nbor()
     return objs
 
 #Should be recieving one sentence
