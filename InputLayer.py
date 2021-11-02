@@ -12,9 +12,12 @@ from numerizer import numerize
 from ImageLayer import ImageLayer
 import Values
 
-def main(nlp, newImg):
+def main(nlp, newImg, userIn=None):
     #Example: "Crop the image to 500x500 from the top left and rotate it 90 degrees and grayscale it"
-    userIn = input("Cmd: ");
+    showLocally = False
+    if userIn is None:
+        showLocally = True
+        userIn = input("Cmd: ");
     success = False
 
     if(userIn.lower().strip() == "quit"):
@@ -23,7 +26,6 @@ def main(nlp, newImg):
 
     cmds = parseCommands(userIn, nlp)
     #Each command sep
-
     for cmd in cmds:
         #spacy.displacy.serve(cmd, style="dep")
         # Get the root word, should be verb
@@ -40,9 +42,12 @@ def main(nlp, newImg):
         success = newImg.commandHandler(rt.lemma_, adjs, objs, params)
 
     if success:
-        newImg.showImage()
         #Set where image should be rolled back to
         newImg.setUndo()
+
+        if showLocally:
+            newImg.showImage()
+
     return True
 
 def parseCommands(userIn, nlp):
@@ -152,9 +157,12 @@ def initialize():
     #Update entity list for nlp
     entity_ruler = nlp.add_pipe("entity_ruler")
     entity_ruler.initialize(lambda: [], nlp=nlp, patterns=updateEntityList())
-    images = ImageLayer()
     print("Done!")
-    '''
+
+    return nlp
+
+def cmdDriver():
+    nlp = initialize()
+    images = ImageLayer()
     while(main(nlp, images)):
         pass
-    '''

@@ -1,18 +1,12 @@
-#Import all of the things necessary for the project
-from flask import Flask, request, url_for, render_template
-import InputLayer
+#Main driver of the program
+#Determines if program to be run in cmd or on web server
+import sys
 
-app = Flask(__name__)
-il = InputLayer
+#Assume by default that it runs in cmd
 
-#This tells the program what to do when someone connects to the site's main page
-@app.route('/')
-def index():
-    #This tells it where the relevant html file is
-    return '''<h1> Hello World </h1>'''
-
-if __name__ == "__main__":
-    #app.run(host='0.0.0.0', port=5000)
-    il.initialize()
-    print("Finished")
-    app.run()
+if len(sys.argv) > 1 and sys.argv[1] == "web":
+    import FlaskLayer
+    FlaskLayer.runServer()
+else:
+    import InputLayer
+    InputLayer.cmdDriver()

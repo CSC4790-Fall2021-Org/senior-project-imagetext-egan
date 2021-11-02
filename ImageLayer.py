@@ -9,6 +9,7 @@ OpenCV is called there is no chance of an error occuring.
 '''
 
 import os
+import io
 import glob
 from PIL import Image
 import PillowLayer
@@ -57,6 +58,11 @@ class ImageLayer:
 
         return True
 
+    def returnImage(self):
+        self.img_byte_arr = io.BytesIO()
+        self.currImg.save(self.img_byte_arr, format='PNG')
+        self.img_byte_arr.seek(0)
+        return self.img_byte_arr
 
     def showImage(self):
         if self.workingStyle == 1:
@@ -88,3 +94,6 @@ class ImageLayer:
             if name == imgName or name.split('.')[0] == imgName:
                 return os.path.basename(file)
         return False
+
+    def getFname(self):
+        return self.workingImage
