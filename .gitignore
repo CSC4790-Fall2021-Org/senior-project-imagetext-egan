@@ -2,3 +2,4 @@
 __pycache__/
 Dependencies/shape_predictor_68_face_landmarks.dat
 Dependencies/mmod_human_face_detector.dat
+.DS_Store

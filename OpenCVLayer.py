@@ -77,6 +77,7 @@ def crop_params(img, buffer):
 
 def blur_face(img, blurPct, buffer, blurAll):
     cvImg = np.array(img)
+    #!!! EXPECTS A COLOR IMAGE (COULD RECIEVE GRAYSCALED IMAGE)
     grayscaled = cv2.cvtColor(cvImg, cv2.COLOR_BGR2GRAY)
 
     if blurAll:
