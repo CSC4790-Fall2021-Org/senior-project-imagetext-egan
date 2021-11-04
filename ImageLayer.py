@@ -17,7 +17,7 @@ import Values
 
 class ImageLayer:
 
-    def __init__(self, path="./Pictures/", workingImage="therock.jpg"):
+    def __init__(self, path="./Pictures/", workingImage="panda.jpg"):
         self.path = path
         self.workingImage = workingImage
         self.currImg = Image.open(self.path + self.workingImage)

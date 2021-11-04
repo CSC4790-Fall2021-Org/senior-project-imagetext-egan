@@ -25,6 +25,7 @@ def index():
     if request.method == "POST":
         imgFile = request.files.get('file', None)
         cmd = request.form.get('cmd', "")
+        undo = request.form.get('undo', "")
         #Needs to update the file
 
         if imgFile is not None:
@@ -34,6 +35,9 @@ def index():
             newName = randomString() +"."+ ext
             imgFile.save(os.path.join("Pictures",  newName))
             img.setImg(newName)
+            
+        if undo != "":
+            cmd = "undo"
 
         if cmd != "":
             InputLayer.main(nlp, img, cmd) #updates img as part of function
