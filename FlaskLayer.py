@@ -34,8 +34,8 @@ def index():
             ext = imgFile.filename.rsplit('.', 1)[1]
             newName = randomString() +"."+ ext
             imgFile.save(os.path.join("Pictures",  newName))
-            img.setImg(newName)
-            
+            img.setDefault(newName)
+
         if undo != "":
             cmd = "undo"
 
@@ -45,7 +45,7 @@ def index():
     #Update the image at least onece every time page is called
     currImage = base64.b64encode(img.returnImage().getvalue()).decode() #Returns image as BytesIO array -> converts to b64
     #This tells it where the relevant html file is
-    return render_template('index.html', currImage=currImage)
+    return render_template('index.html', currImage=currImage, cmds=img.getCommands())
 
 def runServer():
     #app.run(host='0.0.0.0', port=5000)

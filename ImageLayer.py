@@ -11,17 +11,20 @@ OpenCV is called there is no chance of an error occuring.
 import os
 import io
 import glob
-from PIL import Image
+from PIL import Image, ImageOps
 import PillowLayer
 import Values
 
 class ImageLayer:
 
     def __init__(self, path="./Pictures/", workingImage="panda.jpg"):
+        self.MAX_HISTORY = 10
         self.path = path
         self.workingImage = workingImage
         self.currImg = Image.open(self.path + self.workingImage)
         self.lastImg = [(self.workingImage, self.currImg)]
+        self.lastCmd = []
+        self.show = True
 
     def commandHandler(self, method, adjs, objs, params):
         #Find the image we want to deal with
@@ -40,46 +43,68 @@ class ImageLayer:
                     params["SPARAMS"] = element
 
         if method == "reset" or method == "revert":
-            self.currImg = Image.open(self.path + self.workingImage)
+            self.setDefault(self.workingImage)
+            self.show = False
 
         elif method == "set":
             if exist != False:
                 self.setDefault(exist)
+                self.show = False
             else:
                 print("Could not find image.")
                 return False
         elif method == "undo":
             self.undoImage()
+            self.show = False
+
         else:
             self.currImg = PillowLayer.getMethod(method, adjs, params, self.currImg)
 
         return True
 
+    def shouldShowCommand(self):
+        temp = self.show
+        self.show = True
+        return temp
+
     def returnImage(self):
         #Convert to Byte array -> Necessary for Flask
         self.img_byte_arr = io.BytesIO()
-        self.currImg.save(self.img_byte_arr, format='PNG')
+        ImageOps.exif_transpose(self.currImg).save(self.img_byte_arr, format='PNG')
         self.img_byte_arr.seek(0)
         return self.img_byte_arr
+
+    def setLastCommand(self, cmd):
+        if len(self.lastCmd) > self.MAX_HISTORY:
+            self.lastCmd.pop(0)
+
+        self.lastCmd.append(cmd)
+
+    def getCommands(self):
+        return self.lastCmd
 
     def showImage(self):
         self.currImg.show()
 
     def setUndo(self):
+        if len(self.lastImg) > self.MAX_HISTORY:
+            self.lastImg.pop(0)
         self.lastImg.append((self.workingImage, self.currImg))
 
     def undoImage(self):
-
         if not self.lastImg or len(self.lastImg) <= 1:
-            self.workingImage, self.currImg = self.lastImg.pop()
+            #self.workingImage, self.currImg = self.lastImg.pop()
             print("Cannot undo further.")
         else:
             self.lastImg.pop()
-            self.workingImage, self.currImg = self.lastImg.pop()
+            self.workingImage, self.currImg = self.lastImg[-1]
+            self.lastCmd.pop()
 
     def setDefault(self, imgName):
         self.workingImage = imgName
-        self.currImg = Image.open(self.path + self.workingImage)
+        self.currImg = Image.open(self.path + imgName)
+        self.lastImg = [(self.workingImage, self.currImg)]
+        self.lastCmd = list()
         print("Updated default image.")
 
     #Return file if it exists, else return false
@@ -94,11 +119,6 @@ class ImageLayer:
 
     def getFname(self):
         return self.workingImage
-
-    def setImg(self, name):
-        self.workingImage = name
-        self.currImg = Image.open(self.path + name)
-        self.lastImg = [(self.workingImage, self.currImg)]
 
     def setPath(self, p):
         self.path = p

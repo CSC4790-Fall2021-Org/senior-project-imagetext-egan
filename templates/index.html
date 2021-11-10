@@ -27,7 +27,7 @@
           <label for="formFile" class="form-label mt-4">Upload a new Image</label>
           <form action="" method=post enctype=multipart/form-data>
             <input name=file class="form-control" type="file" id="formFile" style="width: 80%; float: left;">
-            <button class="btn btn-primary" type=submit style="float: right; width: 15%; clear: none;">Upload</button>
+            <button class="btn btn-outline-primary" type=submit style="float: right; width: 15%; clear: none;">Upload</button>
           </form>
           <div style="margin-bottom: 15px">&nbsp&nbsp</div>
           {% if error %}
@@ -43,10 +43,27 @@
       <div id="commandline" class="form-group">
         <form action="" method=post enctype=multipart/form-data>
           <textarea name=cmd placeholder="Enter a command" class="form-control" id="exampleTextarea" rows="0" style="margin-top: 0px; margin-bottom: 10px;"></textarea>
-          <button type=submit class="btn btn-primary" style="float: right">Transform</button>
-          <button name=undo value="undo" type=submit class="btn btn-primary" style="float: right; margin-right: 15px;">Undo</button>
+          <button type=submit class="btn btn-outline-primary" style="float: right">Transform</button>
+          <button name=undo value="undo" type=submit class="btn btn-outline-primary" style="float: right; margin-right: 15px;">Undo</button>
         </form>
+
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col"> Command History: </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cmd in cmds %}
+            <tr class="table-primary">
+              <td>{{loop.index}}: &nbsp {{cmd}}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
       </div>
+
     </div>
   </body>
 

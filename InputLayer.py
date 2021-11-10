@@ -42,8 +42,11 @@ def main(nlp, newImg, userIn=None):
         success = newImg.commandHandler(rt.lemma_, adjs, objs, params)
 
     if success:
-        #Set where image should be rolled back to
-        newImg.setUndo()
+        #Record the command
+        if newImg.shouldShowCommand():
+            newImg.setLastCommand(userIn)
+            #Set where image should be rolled back to
+            newImg.setUndo()
 
         if showLocally:
             newImg.showImage()
