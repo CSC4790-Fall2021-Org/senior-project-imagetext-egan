@@ -26,8 +26,8 @@ def index():
         imgFile = request.files.get('file', None)
         cmd = request.form.get('cmd', "")
         undo = request.form.get('undo', "")
+        revert = request.form.get('revert', None)
         #Needs to update the file
-
         if imgFile is not None:
             if "." not in imgFile.filename:
                 return render_template('index.html', currImg=None, error="Invalid File")
@@ -39,6 +39,9 @@ def index():
         if undo != "":
             cmd = "undo"
 
+        if revert is not None:
+            img.revertImage(int(revert))
+            
         if cmd != "":
             InputLayer.main(nlp, img, cmd) #updates img as part of function
 

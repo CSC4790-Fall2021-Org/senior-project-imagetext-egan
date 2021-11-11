@@ -1,12 +1,3 @@
-'''
-
-Layer between the text processing code and image changing code
-The objective of this file is to handle the general image work that
-will need to be done whenever a command is called.
-It shoudl also be able to check for exceptions so when Pillow or
-OpenCV is called there is no chance of an error occuring.
-
-'''
 
 import os
 import io
@@ -99,6 +90,13 @@ class ImageLayer:
             self.lastImg.pop()
             self.workingImage, self.currImg = self.lastImg[-1]
             self.lastCmd.pop()
+
+    def revertImage(self, index):
+        #B/c of 1 index, image at index is removed
+        #Command at index-1 is removed
+        self.lastImg = self.lastImg[:index+1]
+        self.lastCmd = self.lastCmd[:index]
+        self.workingImage, self.currImg = self.lastImg[-1]
 
     def setDefault(self, imgName):
         self.workingImage = imgName

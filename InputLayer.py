@@ -1,10 +1,4 @@
-"""
-
-A program that takes english commands and edits photos
-based off of them. Uses the spacy library for nlp and the
-pillow library for image editing.
-
-"""
+#Let user know things are loading, not frozen
 print("Loading libraries... ")
 import spacy
 import re
