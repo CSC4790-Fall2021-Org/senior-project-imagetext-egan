@@ -30,7 +30,7 @@ def index():
         img = ImageLayer()
         users[request.environ['REMOTE_ADDR']] = img
     error2 = None
-    
+
     if request.method == "POST":
         imgFile = request.files.get('file', None)
         cmd = request.form.get('cmd', "")
@@ -58,7 +58,7 @@ def index():
     currImage = base64.b64encode(img.returnImage().getvalue()).decode() #Returns image as BytesIO array -> converts to b64
     #This tells it where the relevant html file is
     return render_template('index.html', currImage=currImage, cmds=img.getCommands(), error2=error2)
-'''
+
 @app.errorhandler(Exception)
 def handle_exception(e):
     # pass through HTTP errors
@@ -71,7 +71,7 @@ def handle_exception(e):
         render_template('index.html', error2="Please relooad the webpage.")
     # This handles non-HTTP exceptions only
     return render_template('index.html', currImage=base64.b64encode(img.returnImage().getvalue()).decode(), cmds=img.getCommands(), error2="Cannot preform that transformation.")
-'''
+
 def runServer():
     #app.run(host='0.0.0.0', port=5000)
     app.run()
