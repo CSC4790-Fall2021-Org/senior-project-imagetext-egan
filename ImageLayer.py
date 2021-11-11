@@ -19,6 +19,7 @@ class ImageLayer:
 
     def commandHandler(self, method, adjs, objs, params):
         #Find the image we want to deal with
+        self.warning = None
         exist = False
         for element in objs:
             exist = self.imgExists(element)
@@ -42,16 +43,16 @@ class ImageLayer:
                 self.setDefault(exist)
                 self.show = False
             else:
-                print("Could not find image.")
-                return False
+                self.warning = "Could not find image."
+                return False, self.warning
         elif method == "undo":
-            self.undoImage()
+            self.warning = self.undoImage()
             self.show = False
 
         else:
-            self.currImg = PillowLayer.getMethod(method, adjs, params, self.currImg)
+            self.currImg, self.warning = PillowLayer.getMethod(method, adjs, params, self.currImg)
 
-        return True
+        return True, self.warning
 
     def shouldShowCommand(self):
         temp = self.show
@@ -83,13 +84,16 @@ class ImageLayer:
         self.lastImg.append((self.workingImage, self.currImg))
 
     def undoImage(self):
+        self.warning = None
         if not self.lastImg or len(self.lastImg) <= 1:
             #self.workingImage, self.currImg = self.lastImg.pop()
-            print("Cannot undo further.")
+            self.warning = "Cannot undo further."
         else:
             self.lastImg.pop()
             self.workingImage, self.currImg = self.lastImg[-1]
             self.lastCmd.pop()
+
+        return self.warning
 
     def revertImage(self, index):
         #B/c of 1 index, image at index is removed

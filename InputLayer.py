@@ -33,7 +33,7 @@ def main(nlp, newImg, userIn=None):
         #Reset and undo are a bit different
         #Add methods here from ImageLayer that change as necessary
         #Build the method then call
-        success = newImg.commandHandler(rt.lemma_, adjs, objs, params)
+        success, warning = newImg.commandHandler(rt.lemma_, adjs, objs, params)
 
     if success:
         #Record the command
@@ -44,8 +44,10 @@ def main(nlp, newImg, userIn=None):
 
         if showLocally:
             newImg.showImage()
+            if warning is not None:
+                print(warning)
 
-    return True
+    return warning
 
 def parseCommands(userIn, nlp):
     doc = nlp.make_doc(userIn.lower())
@@ -147,6 +149,7 @@ def updateEntityList():
 
     return patterns
 
+
 #Runs once to initialize the spacy
 def initialize():
     #Load in spacy nlp -> takes about 1.5-2 seconds:
@@ -161,5 +164,5 @@ def initialize():
 def cmdDriver():
     nlp = initialize()
     images = ImageLayer()
-    while(main(nlp, images)):
+    while(main(nlp, images) != False):
         pass

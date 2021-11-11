@@ -8,7 +8,7 @@ import OpenCVLayer
 def getMethod(methodName, adjs, parameters, image):
     #Will always pass, image and tuple -> [parameters, adjs]
     image = ImageOps.exif_transpose(image)
-    return eval(methodName)(image, parameters, adjs)
+    return (eval(methodName)(image, parameters, adjs))
 
 # Needs an image, can have new size, startSideition,
 def crop(image, params, adjs):
@@ -57,7 +57,7 @@ def crop(image, params, adjs):
         right = newWidth
         left = 0
 
-    return image.crop((left, top, right, bottom))
+    return image.crop((left, top, right, bottom)), None
 
 
 # Needs an image, can have a blur percentage
@@ -76,40 +76,40 @@ def blur(image, params, adjs):
         elif adjs in Values.modify_less:
             pct = 15
         else:
-            return image.filter(ImageFilter.BLUR)
+            return image.filter(ImageFilter.BLUR), None
     # Formula: min(x,y)/20 * pct^2/100^2 b/c blur uses radius
     blurFormula = min(image.size[0], image.size[1]) / 20 * math.pow(int(pct), 2) / 10000
-    return image.filter(ImageFilter.GaussianBlur(radius=blurFormula))
+    return image.filter(ImageFilter.GaussianBlur(radius=blurFormula)), None
 
 def grayscale(image, params, adjs):
 
-    return ImageOps.grayscale(image)
+    return ImageOps.grayscale(image), None
 
 def invert(image, params, adjs):
 
-    return ImageOps.invert(image)
+    return ImageOps.invert(image), None
 
 def enhance(image, params, adjs):
 
     if adjs in Values.modify_more:
-        return image.filter(ImageFilter.EDGE_ENHANCE_MORE)
+        return image.filter(ImageFilter.EDGE_ENHANCE_MORE), None
 
-    return image.filter(ImageFilter.EDGE_ENHANCE)
+    return image.filter(ImageFilter.EDGE_ENHANCE), None
 
 def emboss(image, params, adjs):
 
-    return image.filter(ImageFilter.EMBOSS)
+    return image.filter(ImageFilter.EMBOSS), None
 
 def smooth(image, params, adjs):
 
     if adjs in Values.modify_more:
         return image.filter(ImageFilter.SMOOTH_MORE)
 
-    return image.filter(ImageFilter.SMOOTH)
+    return image.filter(ImageFilter.SMOOTH), None
 
 def sharpen(image, params, adjs):
 
-    return image.filter(ImageFilter.SHARPEN)
+    return image.filter(ImageFilter.SHARPEN), None
 
 def rotate(image, params, adjs):
 
@@ -122,29 +122,31 @@ def rotate(image, params, adjs):
     elif adjs in Values.modify_less:
         degrees = 30
 
-    return image.rotate(degrees, expand=True)
+    return image.rotate(degrees, expand=True), None
 
 def show(image, params, adjs):
-    return image
+    return image, None
 
 ######################## OpenCV Specific Functions ############################
 
 def crop_specific(image, params):
     #Make sure a face was found
+    warning = None
     if params is None:
-        print("No faces found")
-        return image
+        warning = "No faces found"
+        return image, warning
 
     x,y,w,h = params
 
-    return image.crop((x, y, x+w, y+h))
+    return image.crop((x, y, x+w, y+h)), warning
 
 def blur_face(image, params, adjs, buffer, aroundFace):
     #Blur around face
+    warning = None
     if aroundFace == "around":
         blurred = blur(image, {'PERCENT' : params.get('PERCENT', None)}, adjs)
-        newImg = OpenCVLayer.blur_around_face(image, blurred, buffer)
-        return Image.fromarray(newImg).convert('RGB')
+        newImg, warning = OpenCVLayer.blur_around_face(image, blurred, buffer)
+        return Image.fromarray(newImg).convert('RGB'), warning
     #Blur out the face
     #Get an amount to blur it
     pct = params.get('PERCENT', None)
@@ -159,5 +161,5 @@ def blur_face(image, params, adjs, buffer, aroundFace):
     buffer = params.get('NUMBERS', [0])
     #Check to see if all faces must be blurred
     blurAll = (aroundFace == "all")
-    newImg = OpenCVLayer.blur_face(image, int(pct), buffer[0], blurAll)
-    return Image.fromarray(newImg).convert('RGB')
+    newImg, warning = OpenCVLayer.blur_face(image, int(pct), buffer[0], blurAll)
+    return Image.fromarray(newImg).convert('RGB'), warning

@@ -77,19 +77,20 @@ def crop_params(img, buffer):
 
 def blur_face(img, blurPct, buffer, blurAll):
     cvImg = np.array(img)
+    warning = None
     #!!! EXPECTS A COLOR IMAGE (COULD RECIEVE GRAYSCALED IMAGE)
     grayscaled = cv2.cvtColor(cvImg, cv2.COLOR_BGR2GRAY)
 
     if blurAll:
         faces = just_faces_dlib(grayscaled)
         if len(faces) == 0:
-            print("Could not find any faces")
-            return cvImg
+            warning = "Could not find any faces"
+            return cvImg, warning
     else:
         faces = find_face_haar(grayscaled)
         if len(faces) == 0:
-            print("Could not find face")
-            return cvImg
+            warning = "Could not find any faces"
+            return cvImg, warning
         faces = [faces[0]]
 
     if buffer < 0:
@@ -112,19 +113,20 @@ def blur_face(img, blurPct, buffer, blurAll):
                 (B, G, R) = [int(x) for x in cv2.mean(blurArea)[:3]]
                 cv2.rectangle(cvImg, startXY, endXY, (B, G, R), -1)
 
-    return np.uint8(cvImg)
+    return np.uint8(cvImg), warning
 
 
 def blur_around_face(img, blurredImg, buffer):
     cvImg = np.array(img)
     blurred = np.array(blurredImg)
     grayscaled = cv2.cvtColor(cvImg, cv2.COLOR_BGR2GRAY)
+    warning = None
 
     faceRect, faceXY = find_face_dlib(grayscaled)
 
     if faceRect == None:
-        print("No faces found.")
-        return blurred
+        warning = "No faces found."
+        return blurred, warning
 
     if buffer < 0:
         buffer = 0
@@ -173,7 +175,7 @@ def blur_around_face(img, blurredImg, buffer):
     mask = np.zeros((cvImg.shape[0], cvImg.shape[1]))
     mask = cv2.fillConvexPoly(mask, np.array(routes), 1).astype(np.bool)
     blurred[mask] = cvImg[mask]
-    return np.uint8(blurred)
+    return np.uint8(blurred), warning
 
 def buffered_vals(params, buffer, size):
     x,y,w,h = params

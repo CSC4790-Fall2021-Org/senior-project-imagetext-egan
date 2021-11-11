@@ -3,6 +3,7 @@ from flask import Flask, request, url_for, render_template, send_file
 from werkzeug.exceptions import HTTPException
 from random import choice
 from ImageLayer import ImageLayer
+from multiprocessing import Process
 import spacy
 import InputLayer
 import io
@@ -28,7 +29,8 @@ def index():
     if img is None:
         img = ImageLayer()
         users[request.environ['REMOTE_ADDR']] = img
-
+    error2 = None
+    
     if request.method == "POST":
         imgFile = request.files.get('file', None)
         cmd = request.form.get('cmd', "")
@@ -50,22 +52,26 @@ def index():
             img.revertImage(int(revert))
 
         if cmd != "":
-            InputLayer.main(nlp, img, cmd) #updates img as part of function
+            error2 = InputLayer.main(nlp, img, cmd) #updates img as part of function
 
     #Update the image at least onece every time page is called
     currImage = base64.b64encode(img.returnImage().getvalue()).decode() #Returns image as BytesIO array -> converts to b64
     #This tells it where the relevant html file is
-    return render_template('index.html', currImage=currImage, cmds=img.getCommands())
-
+    return render_template('index.html', currImage=currImage, cmds=img.getCommands(), error2=error2)
+'''
 @app.errorhandler(Exception)
 def handle_exception(e):
     # pass through HTTP errors
     if isinstance(e, HTTPException):
         return e
 
+    img = users.get(request.environ['REMOTE_ADDR'], None)
+    #If ip is not logged, log it
+    if img is None:
+        render_template('index.html', error2="Please relooad the webpage.")
     # This handles non-HTTP exceptions only
     return render_template('index.html', currImage=base64.b64encode(img.returnImage().getvalue()).decode(), cmds=img.getCommands(), error2="Cannot preform that transformation.")
-
+'''
 def runServer():
     #app.run(host='0.0.0.0', port=5000)
     app.run()
