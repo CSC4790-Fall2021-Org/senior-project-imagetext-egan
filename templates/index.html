@@ -10,7 +10,7 @@
   <body>
       <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
-          <a class="navbar-brand" href="#">ImageText: Transform Images Using Strings</a>
+          <a class="navbar-brand" href="#" style="margin-left: 3%">ImageText: Transform Images Using Strings</a>
       </nav>
 
     <div id ="body">
@@ -41,6 +41,12 @@
       </div>
 
       <div id="commandline" class="form-group">
+        {% if error2 %}
+        <div class="alert alert-dismissible alert-danger">
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          <strong>Error!</strong> {{error2}}.
+        </div>
+        {% endif %}
         <form action="" method=post enctype=multipart/form-data>
           <!-- <textarea name=cmd placeholder="Enter a command" class="form-control" id="exampleTextarea" rows="0" style="margin-top: 0px; margin-bottom: 10px;"></textarea> -->
           <input name=cmd type="text" class="form-control" placeholder="Enter a command" id="inputDefault" style="margin-bottom: 12px">

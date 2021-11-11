@@ -1,5 +1,6 @@
 #Import all of the things necessary for the project
 from flask import Flask, request, url_for, render_template, send_file
+from werkzeug.exceptions import HTTPException
 from random import choice
 from ImageLayer import ImageLayer
 import spacy
@@ -41,7 +42,7 @@ def index():
 
         if revert is not None:
             img.revertImage(int(revert))
-            
+
         if cmd != "":
             InputLayer.main(nlp, img, cmd) #updates img as part of function
 
@@ -49,6 +50,15 @@ def index():
     currImage = base64.b64encode(img.returnImage().getvalue()).decode() #Returns image as BytesIO array -> converts to b64
     #This tells it where the relevant html file is
     return render_template('index.html', currImage=currImage, cmds=img.getCommands())
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # pass through HTTP errors
+    if isinstance(e, HTTPException):
+        return e
+
+    # This handles non-HTTP exceptions only
+    return render_template('index.html', currImage=base64.b64encode(img.returnImage().getvalue()).decode(), cmds=img.getCommands(), error2="Cannot preform that transformation.")
 
 def runServer():
     #app.run(host='0.0.0.0', port=5000)
