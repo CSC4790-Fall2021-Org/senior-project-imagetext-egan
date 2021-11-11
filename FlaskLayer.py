@@ -13,7 +13,8 @@ import os
 app = Flask(__name__)
 
 nlp = InputLayer.initialize()
-img = ImageLayer()
+#img = ImageLayer()
+users = {}
 
 #Generate a random string of length 20
 def randomString():
@@ -22,6 +23,11 @@ def randomString():
 #This tells the program what to do when someone connects to the site's main page
 @app.route('/', methods=['GET','POST'])
 def index():
+    img = users.get(request.environ['REMOTE_ADDR'], None)
+    #If ip is not logged, log it
+    if img is None:
+        img = ImageLayer()
+        users[request.environ['REMOTE_ADDR']] = img
 
     if request.method == "POST":
         imgFile = request.files.get('file', None)
