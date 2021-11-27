@@ -73,5 +73,6 @@ def handle_exception(e):
     return render_template('index.html', currImage=base64.b64encode(img.returnImage().getvalue()).decode(), cmds=img.getCommands(), error2="Cannot preform that transformation.")
 
 def runServer():
-    #app.run(host='0.0.0.0', port=5000)
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
+    #app.run()
+    #Spin up

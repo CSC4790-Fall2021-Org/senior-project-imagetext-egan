@@ -21,7 +21,7 @@ def main(nlp, newImg, userIn=None):
     cmds = parseCommands(userIn, nlp)
     #Each command sep
     for cmd in cmds:
-        #spacy.displacy.serve(cmd, style="dep")
+        #spacy.displacy.serve(cmd, style="ent")
         # Get the root word, should be verb
         rt, params = getParameters(cmd)
         adjs = gatherAdjectives(cmd.root)
@@ -163,6 +163,7 @@ def initialize():
 
 def cmdDriver():
     nlp = initialize()
+    print("Loaded nlp")
     images = ImageLayer()
     while(main(nlp, images) != False):
         pass
