@@ -119,7 +119,7 @@ def getParameters(doc):
     nums = []
     funcToCall = None
     for ent in doc.ents:
-        if ent.label_ == "CARDINAL" or ent.label_ == "QUANTITY":
+        if ent.label_ == "CARDINAL" or ent.label_ == "QUANTITY" or ent.label_ == "DATE":
 
             for s in re.findall(r'\d+', numerize(ent.text)):
                 nums.append(int(s))
